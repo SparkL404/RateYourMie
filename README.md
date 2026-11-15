@@ -38,17 +38,6 @@ Dibangun menggunakan **PHP native (tanpa framework)**, **MySQL/MariaDB via PDO (
 
 ---
 
-## 2. Kredensial Akun Awal (Seed Data)
-
-> **Penting:** Segera ganti password akun Admin setelah instalasi di lingkungan produksi/demo.
-
-| Peran | Username | Email | Password Awal |
-| --- | --- | --- | --- |
-| **Admin** | `admin` | `admin@warkopmietier.local` | `AdminMie123!` |
-| **User** | `budi_mie` | `budi@warkopmietier.local` | `UserMie123!` |
-| **User** | `siti_ramen` | `siti@warkopmietier.local` | `UserMie123!` |
-| **User** | `andi_warkop` | `andi@warkopmietier.local` | `UserMie123!` |
-| **User** | `dewi_pedas` | `dewi@warkopmietier.local` | `UserMie123!` |
 
 ---
 
