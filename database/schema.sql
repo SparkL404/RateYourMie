@@ -1,0 +1,85 @@
+-- Skema Database: Website Rating Mie Instan dan Tierlist
+-- Target: MySQL 8.0+ / MariaDB 10.3+ (InnoDB, utf8mb4)
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS tierlist_items;
+DROP TABLE IF EXISTS tierlists;
+DROP TABLE IF EXISTS ratings;
+DROP TABLE IF EXISTS noodles;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS settings;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+CREATE TABLE users (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('user','admin') NOT NULL DEFAULT 'user',
+  email_verified TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE noodles (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  brand VARCHAR(100) NOT NULL,
+  flavor VARCHAR(100) NOT NULL,
+  origin_country VARCHAR(80) NOT NULL,
+  price INT UNSIGNED NOT NULL DEFAULT 0,
+  description TEXT,
+  image VARCHAR(255) DEFAULT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_noodles_brand (brand),
+  INDEX idx_noodles_flavor (flavor),
+  INDEX idx_noodles_country (origin_country)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE ratings (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  noodle_id INT UNSIGNED NOT NULL,
+  taste TINYINT UNSIGNED NOT NULL,
+  texture TINYINT UNSIGNED NOT NULL,
+  `portion` TINYINT UNSIGNED NOT NULL,
+  `value` TINYINT UNSIGNED NOT NULL,
+  review TEXT,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_user_noodle (user_id, noodle_id),
+  CONSTRAINT chk_taste CHECK (taste BETWEEN 1 AND 5),
+  CONSTRAINT chk_texture CHECK (texture BETWEEN 1 AND 5),
+  CONSTRAINT chk_portion CHECK (`portion` BETWEEN 1 AND 5),
+  CONSTRAINT chk_value CHECK (`value` BETWEEN 1 AND 5),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (noodle_id) REFERENCES noodles(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE tierlists (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  title VARCHAR(100) NOT NULL,
+  category VARCHAR(50) DEFAULT NULL,
+  is_public TINYINT(1) NOT NULL DEFAULT 0,
+  share_token CHAR(32) DEFAULT NULL UNIQUE,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE tierlist_items (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  tierlist_id INT UNSIGNED NOT NULL,
+  noodle_id INT UNSIGNED NOT NULL,
+  tier ENUM('S','A','B','C','D','F') NOT NULL,
+  position SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  UNIQUE KEY uq_tierlist_noodle (tierlist_id, noodle_id),
+  FOREIGN KEY (tierlist_id) REFERENCES tierlists(id) ON DELETE CASCADE,
+  FOREIGN KEY (noodle_id) REFERENCES noodles(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE settings (
+  key_name VARCHAR(50) PRIMARY KEY,
+  key_value VARCHAR(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

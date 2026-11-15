@@ -1,0 +1,9 @@
+# Upload pengguna (pertahankan .htaccess)
+uploads/*
+!uploads/.htaccess
+# Folder konfigurasi lokal AI / editor
+.gemini/
+.impeccable/
+# File sistem
+.DS_Store
+Thumbs.db
