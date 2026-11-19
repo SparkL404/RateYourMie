@@ -29,7 +29,6 @@ if (!$tierlist) {
     exit;
 }
 
-// Proteksi kepemilikan: User A tidak boleh membuka atau mengubah tierlist pribadi User B lewat manipulasi id
 if ((int) $tierlist['user_id'] !== (int) $user['id']) {
     http_response_code(403);
     $pageTitle = 'Akses Ditolak';
@@ -43,14 +42,12 @@ if ((int) $tierlist['user_id'] !== (int) $user['id']) {
     exit;
 }
 
-// Ambil seluruh mie katalog
 $allNoodles = get_all_noodles_with_scores();
 $noodleMap = [];
 foreach ($allNoodles as $n) {
     $noodleMap[(int) $n['id']] = $n;
 }
 
-// Ambil susunan tersimpan
 $itemStmt = $pdo->prepare('
     SELECT noodle_id, tier, position
     FROM tierlist_items
@@ -98,7 +95,26 @@ function render_tierlist_card_item(array $noodle): string
     $nid = (int) $noodle['id'];
     $curTier = (string) ($noodle['current_tier'] ?? 'UNRANKED');
     $raterCount = (int) ($noodle['rater_count'] ?? 0);
-    $avgText = $raterCount > 0 ? '★ ' . format_score($noodle['avg_score'], 2) : 'Baru';
+    $scoreHtml = $raterCount > 0
+        ? '<strong class="tier-item-score">' . svg_icon('star', 11) . ' ' . e(format_score($noodle['avg_score'], 2)) . '</strong>'
+        : '<span>Baru</span>';
+
+    $quickButtons = '';
+    foreach (all_tiers() as $tl) {
+        $activeCls = ($curTier === $tl) ? ' is-active ' . tier_meta($tl)['class'] : '';
+        $quickButtons .= sprintf(
+            '<button type="button" class="tier-quick-btn js-tier-quick-btn%s" data-target-tier="%s" title="Pindah ke Tier %s">%s</button>',
+            e($activeCls),
+            e($tl),
+            e($tl),
+            e($tl)
+        );
+    }
+    $unrankedActive = ($curTier === 'UNRANKED') ? ' is-active' : '';
+    $quickButtons .= sprintf(
+        '<button type="button" class="tier-quick-btn tier-quick-reset js-tier-quick-btn%s" data-target-tier="UNRANKED" title="Keluarkan dari papan">–</button>',
+        e($unrankedActive)
+    );
 
     $optionsHtml = '<option value="UNRANKED"' . ($curTier === 'UNRANKED' ? ' selected' : '') . '>Belum Dikelompokkan</option>';
     foreach (all_tiers() as $tl) {
@@ -108,19 +124,24 @@ function render_tierlist_card_item(array $noodle): string
 
     return sprintf(
         '<article class="tier-item-card" draggable="true" data-noodle-id="%d">'
-        . '<div class="tier-item-visual">%s</div>'
+        . '<div class="tier-card-top">'
+        . '<span class="tier-item-swatch">%s</span>'
         . '<a href="%s" class="tier-item-name" title="%s">%s</a>'
-        . '<div class="tier-item-meta tabular"><span>%s</span><span>%s</span></div>'
+        . '</div>'
+        . '<div class="tier-item-meta tabular"><span>%s</span>%s</div>'
+        . '<div class="tier-quick-bar" role="group" aria-label="Pilih tier cepat untuk %s">%s</div>'
         . '<label class="skip-link" for="tier-select-%d">Pilih tier untuk %s</label>'
-        . '<select id="tier-select-%d" class="tier-select-control js-tier-select" aria-label="Pilih tier untuk %s">%s</select>'
+        . '<select id="tier-select-%d" class="tier-select-control js-tier-select skip-link" aria-label="Pilih tier untuk %s">%s</select>'
         . '</article>',
         $nid,
-        render_noodle_visual($noodle, 'pack-visual-sm'),
+        render_noodle_swatch($noodle, 'swatch-xs'),
         e(base_url('noodle.php?id=' . $nid)),
         e($noodle['name']),
         e($noodle['name']),
         e($noodle['brand']),
-        e($avgText),
+        $scoreHtml,
+        e($noodle['name']),
+        $quickButtons,
         $nid,
         e($noodle['name']),
         $nid,
@@ -139,7 +160,7 @@ include __DIR__ . '/includes/header.php';
             <?= svg_icon('arrow-left', 15) ?> Kembali ke Tierlist Saya
         </a>
         <span class="muted-hint">
-            Seret kartu ke baris S–F atau gunakan menu pilih tier pada kartu.
+            Seret kartu ke baris S–F atau ketuk tombol S–F langsung pada kartu.
         </span>
     </div>
 
@@ -156,7 +177,6 @@ include __DIR__ . '/includes/header.php';
         </div>
     </section>
 
-    <!-- Papan Baris S sampai F -->
     <section class="tierboard-wrapper" id="js-tierboard" data-tierlist-id="<?= (int) $tierlist['id'] ?>" aria-label="Papan Tierlist S sampai F">
         <?php foreach (all_tiers() as $tierLetter): ?>
             <?php $meta = tier_meta($tierLetter); ?>
@@ -178,11 +198,10 @@ include __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
     </section>
 
-    <!-- Kolam Mie Belum Dikelompokkan -->
     <section class="unranked-pool-box" aria-label="Mie Belum Dikelompokkan">
         <div class="unranked-pool-head">
-            <h2>Belum Dikelompokkan (<span id="js-unranked-count"><?= count($unrankedNoodles) ?></span>)</h2>
-            <p>Seret mie dari area ini ke baris S–F di atas atau ubah lewat dropdown pada kartu.</p>
+            <h2>Belum Dikelompokkan (<span id="js-unranked-count" class="tabular"><?= count($unrankedNoodles) ?></span>)</h2>
+            <p>Seret mie dari area ini ke baris S–F di atas atau ketuk tombol S–F pada kartu.</p>
         </div>
         <div
             class="tier-dropzone tier-unranked-zone js-tier-dropzone"
@@ -195,7 +214,6 @@ include __DIR__ . '/includes/header.php';
         </div>
     </section>
 
-    <!-- Bilah Simpan Mengambang -->
     <div class="tierlist-SaveBar">
         <div class="savebar-status">
             <span>Status:</span>

@@ -40,4 +40,4 @@ define('RATING_MAX_PER_HOUR', 20);
 
 // Nama situs
 define('SITE_NAME', 'RateYourMie');
-define('SITE_TAGLINE', 'Katalog Rating 4 Aspek & Papan Tierlist Mie Instan');
+define('SITE_TAGLINE', 'Rating Mie Instan Favorit U!');

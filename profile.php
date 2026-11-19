@@ -7,7 +7,6 @@ require_once __DIR__ . '/includes/tier.php';
 $user = require_login();
 $pdo = db();
 
-// Ambil daftar tierlist milik pengguna
 $stmtTierlists = $pdo->prepare('
     SELECT t.*, COUNT(ti.id) AS item_count
     FROM tierlists t
@@ -19,7 +18,6 @@ $stmtTierlists = $pdo->prepare('
 $stmtTierlists->execute([':uid' => (int) $user['id']]);
 $myTierlists = $stmtTierlists->fetchAll();
 
-// Ambil riwayat rating milik pengguna
 $stmtRatings = $pdo->prepare('
     SELECT
         r.*,
@@ -42,13 +40,18 @@ include __DIR__ . '/includes/header.php';
 <main id="main-content" class="container section-block">
     <section class="page-head">
         <div class="page-head-copy">
-            <h1><?= e($user['username']) ?></h1>
+            <h1>@<?= e($user['username']) ?></h1>
             <p><?= e($user['email']) ?> · Peran <?= e(strtoupper((string) $user['role'])) ?></p>
         </div>
-        <div class="page-head-meta tabular">
-            <span><strong><?= count($myTierlists) ?> / <?= (int) MAX_TIERLISTS ?></strong> tierlist</span>
-            <span class="meta-dot" aria-hidden="true">·</span>
-            <span><strong><?= count($myRatings) ?></strong> mie dinilai</span>
+        <div class="page-head-stats">
+            <div class="stat-pill-box">
+                <span class="stat-pill-label">Tierlist</span>
+                <strong class="tabular"><?= count($myTierlists) ?> / <?= (int) MAX_TIERLISTS ?></strong>
+            </div>
+            <div class="stat-pill-box">
+                <span class="stat-pill-label">Mie Dinilai</span>
+                <strong class="tabular"><?= count($myRatings) ?></strong>
+            </div>
         </div>
     </section>
 
@@ -68,7 +71,7 @@ include __DIR__ . '/includes/header.php';
                     <article class="panel-card tierlist-summary-card">
                         <div>
                             <div class="noodle-card-meta">
-                                <span><?= e($tl['category'] ?: 'Umum') ?></span>
+                                <span class="flavor-pill"><?= e($tl['category'] ?: 'Umum') ?></span>
                                 <span class="tabular"><?= (int) $tl['item_count'] ?> mie</span>
                             </div>
                             <h3 class="tierlist-card-title">
@@ -97,7 +100,7 @@ include __DIR__ . '/includes/header.php';
                     <thead>
                         <tr>
                             <th>Mie Instan</th>
-                            <th>R / T / P / H</th>
+                            <th>Rincian 4 Aspek</th>
                             <th>Skor Akhir</th>
                             <th>Ulasan</th>
                             <th>Tanggal</th>
@@ -113,7 +116,14 @@ include __DIR__ . '/includes/header.php';
                                     </a>
                                     <div class="table-item-sub"><?= e($r['noodle_brand']) ?> · <?= e($r['noodle_flavor']) ?></div>
                                 </td>
-                                <td><?= (int) $r['taste'] ?> / <?= (int) $r['texture'] ?> / <?= (int) $r['portion'] ?> / <?= (int) $r['value'] ?></td>
+                                <td>
+                                    <div class="table-aspects-pills tabular">
+                                        <span class="aspect-chip">RAS <?= (int) $r['taste'] ?></span>
+                                        <span class="aspect-chip">TEK <?= (int) $r['texture'] ?></span>
+                                        <span class="aspect-chip">POR <?= (int) $r['portion'] ?></span>
+                                        <span class="aspect-chip">HRG <?= (int) $r['value'] ?></span>
+                                    </div>
+                                </td>
                                 <td>
                                     <span class="tier-badge tier-badge-xs <?= e(tier_meta($tier)['class']) ?>"><?= e($tier) ?></span>
                                     <strong class="table-score-accent"><?= e(format_score($r['final_score'])) ?></strong>

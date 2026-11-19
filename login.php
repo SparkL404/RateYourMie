@@ -61,10 +61,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Login Pengguna';
+$hideFooter = true;
 include __DIR__ . '/includes/header.php';
 ?>
 
-<main id="main-content" class="container section-block">
+<main id="main-content" class="container section-block auth-page-main">
     <section class="auth-card">
         <h1>Masuk ke Akun Anda</h1>
         <p class="muted-copy">Login untuk memberi penilaian 4 aspek pada mie instan dan menyimpan tierlist pribadi.</p>

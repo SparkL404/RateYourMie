@@ -1,0 +1,19 @@
+-- Pembaruan kolom foto kemasan untuk database rating_mie yang sudah di-import sebelumnya
+UPDATE noodles SET image = 'noodle-01-indomie-goreng.jpg' WHERE id = 1;
+UPDATE noodles SET image = 'noodle-02-indomie-rendang.jpg' WHERE id = 2;
+UPDATE noodles SET image = 'noodle-03-indomie-soto.jpg' WHERE id = 3;
+UPDATE noodles SET image = 'noodle-04-indomie-ayam-bawang.jpg' WHERE id = 4;
+UPDATE noodles SET image = 'noodle-05-indomie-aceh.jpg' WHERE id = 5;
+UPDATE noodles SET image = 'noodle-06-sedaap-goreng.jpg' WHERE id = 6;
+UPDATE noodles SET image = 'noodle-07-sedaap-soto.jpg' WHERE id = 7;
+UPDATE noodles SET image = 'noodle-08-sedaap-korean-spicy.jpg' WHERE id = 8;
+UPDATE noodles SET image = 'noodle-09-sarimi-ayam-kecap.jpg' WHERE id = 9;
+UPDATE noodles SET image = 'noodle-10-samyang-buldak.jpg' WHERE id = 10;
+UPDATE noodles SET image = 'noodle-11-samyang-carbonara.jpg' WHERE id = 11;
+UPDATE noodles SET image = 'noodle-12-shin-ramyun.jpg' WHERE id = 12;
+UPDATE noodles SET image = 'noodle-13-nissin-raoh.jpg' WHERE id = 13;
+UPDATE noodles SET image = 'noodle-14-lemonilo-goreng.jpg' WHERE id = 14;
+UPDATE noodles SET image = 'noodle-15-pop-mie-ayam.jpg' WHERE id = 15;
+UPDATE noodles SET image = 'noodle-16-prima-taste-laksa.jpg' WHERE id = 16;
+UPDATE noodles SET image = 'noodle-17-mama-tom-yum.jpg' WHERE id = 17;
+UPDATE noodles SET image = 'noodle-18-gaga-jalapeno.jpg' WHERE id = 18;

@@ -104,39 +104,54 @@
         });
     });
 
-    document.querySelectorAll('.js-delete-tierlist-btn').forEach(function (delBtn) {
-        delBtn.addEventListener('click', function () {
-            var tid = parseInt(delBtn.getAttribute('data-tierlist-id') || '0', 10);
-            var title = delBtn.getAttribute('data-tierlist-title') || 'tierlist ini';
+    document.querySelectorAll('[data-tierlist-card]').forEach(function (card) {
+        var triggerBtn = card.querySelector('.js-delete-tierlist-trigger');
+        var stepBox = card.querySelector('.js-delete-tierlist-step');
+        var cancelBtn = card.querySelector('.js-delete-tierlist-cancel');
+        var delBtn = card.querySelector('.js-delete-tierlist-btn');
 
-            if (!window.confirm('Yakin ingin menghapus tierlist "' + title + '" secara permanen?')) {
-                return;
-            }
+        if (triggerBtn && stepBox) {
+            triggerBtn.addEventListener('click', function () {
+                triggerBtn.hidden = true;
+                stepBox.hidden = false;
+            });
+        }
 
-            delBtn.disabled = true;
+        if (cancelBtn && triggerBtn && stepBox) {
+            cancelBtn.addEventListener('click', function () {
+                stepBox.hidden = true;
+                triggerBtn.hidden = false;
+            });
+        }
 
-            fetch(baseUrl + '/api/tierlist_delete.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                },
-                body: JSON.stringify({ tierlist_id: tid })
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (json) {
-                    if (!json || !json.ok) {
-                        showListFeedback('error', (json && json.error) ? json.error : 'Gagal menghapus tierlist.');
-                        delBtn.disabled = false;
-                        return;
-                    }
-                    window.location.reload();
+        if (delBtn) {
+            delBtn.addEventListener('click', function () {
+                var tid = parseInt(delBtn.getAttribute('data-tierlist-id') || '0', 10);
+                delBtn.disabled = true;
+
+                fetch(baseUrl + '/api/tierlist_delete.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    body: JSON.stringify({ tierlist_id: tid })
                 })
-                .catch(function () {
-                    showListFeedback('error', 'Gagal menghubungi server untuk menghapus tierlist.');
-                    delBtn.disabled = false;
-                });
-        });
+                    .then(function (r) { return r.json(); })
+                    .then(function (json) {
+                        if (!json || !json.ok) {
+                            showListFeedback('error', (json && json.error) ? json.error : 'Gagal menghapus tierlist.');
+                            delBtn.disabled = false;
+                            return;
+                        }
+                        window.location.reload();
+                    })
+                    .catch(function () {
+                        showListFeedback('error', 'Gagal menghubungi server untuk menghapus tierlist.');
+                        delBtn.disabled = false;
+                    });
+            });
+        }
     });
 
     /* ======================================================================
@@ -158,6 +173,15 @@
     var draggedCard = null;
     var autoSaveTimer = null;
 
+    var tierClasses = {
+        S: 'tier-s',
+        A: 'tier-a',
+        B: 'tier-b',
+        C: 'tier-c',
+        D: 'tier-d',
+        F: 'tier-f'
+    };
+
     function setSaveStatus(state, text) {
         [statusTop, statusBottom].forEach(function (el) {
             if (!el) return;
@@ -175,6 +199,17 @@
                 if (select && select.value !== zoneTier) {
                     select.value = zoneTier;
                 }
+                card.querySelectorAll('.js-tier-quick-btn').forEach(function (qBtn) {
+                    var target = qBtn.getAttribute('data-target-tier') || 'UNRANKED';
+                    var isActive = (target === zoneTier);
+                    qBtn.classList.remove('is-active', 'tier-s', 'tier-a', 'tier-b', 'tier-c', 'tier-d', 'tier-f');
+                    if (isActive) {
+                        qBtn.classList.add('is-active');
+                        if (tierClasses[target]) {
+                            qBtn.classList.add(tierClasses[target]);
+                        }
+                    }
+                });
             });
             if (zoneTier === 'UNRANKED' && unrankedCountEl) {
                 unrankedCountEl.textContent = String(cards.length);
@@ -246,7 +281,15 @@
         autoSaveTimer = window.setTimeout(saveTierlistNow, 450);
     }
 
-    // HTML5 Drag and Drop Events
+    function moveCardToTier(card, targetTier) {
+        var targetZone = document.querySelector('.js-tier-dropzone[data-tier="' + (targetTier || 'UNRANKED') + '"]');
+        if (targetZone) {
+            targetZone.appendChild(card);
+            updateCountersAndSelects();
+            scheduleAutoSave();
+        }
+    }
+
     document.querySelectorAll('.tier-item-card').forEach(function (card) {
         card.addEventListener('dragstart', function (ev) {
             draggedCard = card;
@@ -265,19 +308,18 @@
             });
         });
 
-        // Alternatif Layar Sentuh / Keyboard via Dropdown Pilih Tier
         var selectEl = card.querySelector('.js-tier-select');
         if (selectEl) {
             selectEl.addEventListener('change', function () {
-                var targetTier = selectEl.value || 'UNRANKED';
-                var targetZone = document.querySelector('.js-tier-dropzone[data-tier="' + targetTier + '"]');
-                if (targetZone) {
-                    targetZone.appendChild(card);
-                    updateCountersAndSelects();
-                    scheduleAutoSave();
-                }
+                moveCardToTier(card, selectEl.value || 'UNRANKED');
             });
         }
+
+        card.querySelectorAll('.js-tier-quick-btn').forEach(function (qBtn) {
+            qBtn.addEventListener('click', function () {
+                moveCardToTier(card, qBtn.getAttribute('data-target-tier') || 'UNRANKED');
+            });
+        });
     });
 
     function getDragAfterElement(zone, x, y) {

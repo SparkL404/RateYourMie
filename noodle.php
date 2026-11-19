@@ -48,12 +48,11 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="detail-layout">
-        <!-- Kolom Kiri: Informasi Mie, Breakdown 4 Aspek, dan Daftar Ulasan -->
         <div class="detail-main">
             <article class="panel-card">
                 <div class="detail-hero">
                     <div class="detail-visual-box">
-                        <?= render_noodle_visual($noodle, 'pack-visual-lg') ?>
+                        <?= render_noodle_swatch($noodle, 'swatch-hero') ?>
                     </div>
                     <div class="detail-intro">
                         <div class="detail-meta-line">
@@ -64,7 +63,7 @@ include __DIR__ . '/includes/header.php';
                             <span><?= e($noodle['origin_country']) ?></span>
                         </div>
                         <h1><?= e($noodle['name']) ?></h1>
-                        <p class="detail-price price-tag"><?= e(format_rupiah((int) $noodle['price'])) ?></p>
+                        <p class="detail-price price-tag tabular"><?= e(format_rupiah((int) $noodle['price'])) ?></p>
                         <p class="detail-description">
                             <?= $noodle['description'] !== null && $noodle['description'] !== '' ? nl2br(e($noodle['description'])) : 'Belum ada deskripsi tambahan untuk varian mie ini.' ?>
                         </p>
@@ -108,13 +107,14 @@ include __DIR__ . '/includes/header.php';
                             <?php
                             $val = $raterCount > 0 ? (float) $meta['avg'] : 0.0;
                             $pct = min(100, max(0, ($val / 5.0) * 100));
+                            $barTone = $val >= 4.4 ? 'is-high' : ($val > 0 && $val <= 2.5 ? 'is-low' : '');
                             ?>
                             <div class="aspect-row">
                                 <span class="aspect-row-label"><?= e($meta['label']) ?></span>
                                 <div class="aspect-bar-track" aria-hidden="true">
-                                    <div class="aspect-bar-fill" id="js-bar-<?= e($key) ?>" style="width:<?= round($pct, 1) ?>%"></div>
+                                    <div class="aspect-bar-fill <?= $barTone ?>" id="js-bar-<?= e($key) ?>" style="width:<?= round($pct, 1) ?>%"></div>
                                 </div>
-                                <span class="aspect-num" id="js-val-<?= e($key) ?>">
+                                <span class="aspect-num tabular" id="js-val-<?= e($key) ?>">
                                     <?= $raterCount > 0 ? e(format_score($val, 2)) : '–' ?>
                                 </span>
                             </div>
@@ -135,7 +135,7 @@ include __DIR__ . '/includes/header.php';
                             <article class="review-card">
                                 <div class="review-header">
                                     <div class="review-author-wrap">
-                                        <strong class="review-author"><?= e($rv['username']) ?></strong>
+                                        <strong class="review-author">@<?= e($rv['username']) ?></strong>
                                         <?php if ($user && (int) $user['id'] === (int) $rv['user_id']): ?>
                                             <span class="self-tag">Rating Anda</span>
                                         <?php endif; ?>
@@ -147,13 +147,10 @@ include __DIR__ . '/includes/header.php';
                                     </span>
                                 </div>
                                 <div class="review-aspects-inline tabular">
-                                    <span>Rasa <?= (int) $rv['taste'] ?>/5</span>
-                                    <span aria-hidden="true">·</span>
-                                    <span>Tekstur <?= (int) $rv['texture'] ?>/5</span>
-                                    <span aria-hidden="true">·</span>
-                                    <span>Porsi <?= (int) $rv['portion'] ?>/5</span>
-                                    <span aria-hidden="true">·</span>
-                                    <span>Harga <?= (int) $rv['value'] ?>/5</span>
+                                    <span class="aspect-chip">RAS <?= (int) $rv['taste'] ?></span>
+                                    <span class="aspect-chip">TEK <?= (int) $rv['texture'] ?></span>
+                                    <span class="aspect-chip">POR <?= (int) $rv['portion'] ?></span>
+                                    <span class="aspect-chip">HRG <?= (int) $rv['value'] ?></span>
                                 </div>
                                 <?php if ($rv['review'] !== null && trim((string) $rv['review']) !== ''): ?>
                                     <p class="review-body"><?= nl2br(e($rv['review'])) ?></p>
@@ -167,7 +164,6 @@ include __DIR__ . '/includes/header.php';
             </section>
         </div>
 
-        <!-- Kolom Kanan: Form Rating 4 Aspek -->
         <aside class="panel-card detail-sidebar">
             <h2 class="sidebar-title"><?= $myRating ? 'Perbarui Rating Anda' : 'Beri Rating 4 Aspek' ?></h2>
 
@@ -196,9 +192,9 @@ include __DIR__ . '/includes/header.php';
                             <?php
                             if ($myRating) {
                                 $initScore = ((int) $myRating['taste'] + (int) $myRating['texture'] + (int) $myRating['portion'] + (int) $myRating['value']) / 4;
-                                echo e(format_score($initScore, 2)) . ' (' . e(score_to_tier($initScore)) . ')';
+                                echo e(format_score($initScore, 2)) . ' (Tier ' . e(score_to_tier($initScore)) . ')';
                             } else {
-                                echo '4.00 (A)';
+                                echo '4.00 (Tier A)';
                             }
                             ?>
                         </strong>
@@ -254,9 +250,13 @@ include __DIR__ . '/includes/header.php';
                         </button>
 
                         <?php if ($myRating): ?>
-                            <button type="button" id="btn-delete-rating" class="btn btn-danger">
+                            <button type="button" id="btn-delete-rating-trigger" class="btn btn-danger">
                                 <?= svg_icon('trash', 16) ?> Hapus
                             </button>
+                            <span id="js-delete-rating-step" class="inline-confirm-group" hidden>
+                                <button type="button" id="btn-delete-rating" class="btn btn-primary btn-sm">Yakin Hapus</button>
+                                <button type="button" id="btn-delete-rating-cancel" class="btn btn-secondary btn-sm">Batal</button>
+                            </span>
                         <?php endif; ?>
                     </div>
                 </form>
