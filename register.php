@@ -70,10 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Daftar Akun Baru';
+$hideFooter = true;
 include __DIR__ . '/includes/header.php';
 ?>
 
-<main id="main-content" class="container section-block">
+<main id="main-content" class="container section-block auth-page-main">
     <section class="auth-card">
         <h1>Daftar Akun Komunitas</h1>
         <p class="muted-copy">Buat akun untuk memberi rating 4 aspek, menulis ulasan, dan menyusun hingga <?= (int) MAX_TIERLISTS ?> tierlist pribadi.</p>

@@ -39,7 +39,7 @@ include __DIR__ . '/includes/header.php';
                         <th>Varian Mie</th>
                         <th>Negara</th>
                         <th>Harga</th>
-                        <th>R / T / P / H</th>
+                        <th>Rincian 4 Aspek</th>
                         <th>Tier</th>
                         <th>Skor Akhir</th>
                         <th>Penilai</th>
@@ -59,20 +59,27 @@ include __DIR__ . '/includes/header.php';
                                 <span class="rank-medal <?= e($rankClass) ?>"><?= $rank ?></span>
                             </td>
                             <td class="cell-sans">
-                                <a href="<?= e(base_url('noodle.php?id=' . (int) $noodle['id'])) ?>" class="table-item-title">
-                                    <?= e($noodle['name']) ?>
-                                </a>
-                                <div class="table-item-sub">
-                                    <?= e($noodle['brand']) ?> · <?= e($noodle['flavor']) ?>
+                                <div class="table-product-cell">
+                                    <?= render_noodle_swatch($noodle, 'swatch-sm') ?>
+                                    <div>
+                                        <a href="<?= e(base_url('noodle.php?id=' . (int) $noodle['id'])) ?>" class="table-item-title">
+                                            <?= e($noodle['name']) ?>
+                                        </a>
+                                        <div class="table-item-sub">
+                                            <?= e($noodle['brand']) ?> · <?= e($noodle['flavor']) ?>
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
                             <td class="cell-sans"><?= e($noodle['origin_country']) ?></td>
                             <td><?= e(format_rupiah((int) $noodle['price'])) ?></td>
                             <td>
-                                <?= e(format_score($noodle['avg_taste'], 1)) ?> /
-                                <?= e(format_score($noodle['avg_texture'], 1)) ?> /
-                                <?= e(format_score($noodle['avg_portion'], 1)) ?> /
-                                <?= e(format_score($noodle['avg_value'], 1)) ?>
+                                <div class="table-aspects-pills tabular">
+                                    <span class="aspect-chip">RAS <?= e(format_score($noodle['avg_taste'], 1)) ?></span>
+                                    <span class="aspect-chip">TEK <?= e(format_score($noodle['avg_texture'], 1)) ?></span>
+                                    <span class="aspect-chip">POR <?= e(format_score($noodle['avg_portion'], 1)) ?></span>
+                                    <span class="aspect-chip">HRG <?= e(format_score($noodle['avg_value'], 1)) ?></span>
+                                </div>
                             </td>
                             <td>
                                 <span class="tier-badge tier-badge-sm <?= e($tMeta['class']) ?>">
@@ -80,7 +87,10 @@ include __DIR__ . '/includes/header.php';
                                 </span>
                             </td>
                             <td>
-                                <strong class="table-score-accent">★ <?= e(format_score($avgScore, 2)) ?></strong>
+                                <strong class="table-score-accent">
+                                    <?= svg_icon('star', 13) ?>
+                                    <?= e(format_score($avgScore, 2)) ?>
+                                </strong>
                             </td>
                             <td><?= (int) $noodle['rater_count'] ?></td>
                         </tr>

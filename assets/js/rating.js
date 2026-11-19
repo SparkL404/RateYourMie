@@ -16,7 +16,10 @@
     var liveReadout = document.getElementById('js-live-user-score');
     var feedbackBox = document.getElementById('rating-feedback-box');
     var saveBtn = document.getElementById('btn-save-rating');
+    var deleteTriggerBtn = document.getElementById('btn-delete-rating-trigger');
+    var deleteStepBox = document.getElementById('js-delete-rating-step');
     var deleteBtn = document.getElementById('btn-delete-rating');
+    var deleteCancelBtn = document.getElementById('btn-delete-rating-cancel');
 
     var aspects = ['taste', 'texture', 'portion', 'value'];
 
@@ -49,7 +52,7 @@
 
         if (count === 4 && liveReadout) {
             var avg = sum / 4;
-            liveReadout.textContent = avg.toFixed(2) + ' (' + scoreToTierLabel(avg) + ')';
+            liveReadout.textContent = avg.toFixed(2) + ' (Tier ' + scoreToTierLabel(avg) + ')';
         }
     }
 
@@ -118,12 +121,22 @@
             });
     });
 
+    if (deleteTriggerBtn && deleteStepBox) {
+        deleteTriggerBtn.addEventListener('click', function () {
+            deleteTriggerBtn.hidden = true;
+            deleteStepBox.hidden = false;
+        });
+    }
+
+    if (deleteCancelBtn && deleteTriggerBtn && deleteStepBox) {
+        deleteCancelBtn.addEventListener('click', function () {
+            deleteStepBox.hidden = true;
+            deleteTriggerBtn.hidden = false;
+        });
+    }
+
     if (deleteBtn) {
         deleteBtn.addEventListener('click', function () {
-            if (!window.confirm('Yakin ingin menghapus rating dan ulasan Anda pada mie ini?')) {
-                return;
-            }
-
             var noodleId = parseInt(form.getAttribute('data-noodle-id') || '0', 10);
             deleteBtn.disabled = true;
 
