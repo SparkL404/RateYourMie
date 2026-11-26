@@ -4,54 +4,83 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/noodle_repo.php';
 
+$allowedChips = ['goreng', 'kuah', 'pedas', 'budget', 'import'];
+$chipLabels = [
+    'all'    => 'Semua',
+    'goreng' => 'Mi Goreng',
+    'kuah'   => 'Mi Kuah',
+    'pedas'  => 'Pedas',
+    'budget' => 'Hemat ≤ Rp 5.000',
+    'import' => 'Impor',
+];
+$sortOptions = [
+    'score'      => 'Skor Tertinggi',
+    'raters'     => 'Penilai Terbanyak',
+    'price_asc'  => 'Harga Termurah',
+    'price_desc' => 'Harga Termahal',
+    'name'       => 'Nama A–Z',
+];
+
+$rawChip = trim((string) ($_GET['chip'] ?? ''));
+$activeChip = in_array($rawChip, $allowedChips, true) ? $rawChip : '';
+
+$rawSort = trim((string) ($_GET['sort'] ?? 'score'));
+$activeSort = array_key_exists($rawSort, $sortOptions) ? $rawSort : 'score';
+
 $filters = [
     'q'       => trim((string) ($_GET['q'] ?? '')),
     'brand'   => trim((string) ($_GET['brand'] ?? '')),
     'flavor'  => trim((string) ($_GET['flavor'] ?? '')),
     'country' => trim((string) ($_GET['country'] ?? '')),
+    'chip'    => $activeChip,
+    'sort'    => $activeSort,
 ];
 $page = max(1, (int) ($_GET['page'] ?? 1));
 $perPage = 9;
 
+$catalogUrl = static function (array $overrides = []) use ($filters, $page): string {
+    $state = array_merge($filters, ['page' => $page], $overrides);
+    $query = [];
+    foreach (['q', 'brand', 'flavor', 'country', 'chip'] as $key) {
+        $val = trim((string) ($state[$key] ?? ''));
+        if ($val !== '') {
+            $query[$key] = $val;
+        }
+    }
+    $sortVal = trim((string) ($state['sort'] ?? 'score'));
+    if ($sortVal !== '' && $sortVal !== 'score') {
+        $query['sort'] = $sortVal;
+    }
+    $pageVal = max(1, (int) ($state['page'] ?? 1));
+    if ($pageVal > 1) {
+        $query['page'] = $pageVal;
+    }
+    $qs = http_build_query($query);
+    return base_url('index.php' . ($qs !== '' ? '?' . $qs : ''));
+};
+
 $options = get_noodle_filter_options();
 $catalog = get_catalog_noodles($filters, $page, $perPage);
 $noodles = $catalog['items'];
+$noodleCount = count($noodles);
 $minRaters = (int) (get_app_settings()['min_raters'] ?? MIN_RATERS);
 
-$hasActiveFilter = ($filters['q'] !== '' || $filters['brand'] !== '' || $filters['flavor'] !== '' || $filters['country'] !== '');
+$hasActiveFilter = (
+    $filters['q'] !== ''
+    || $filters['brand'] !== ''
+    || $filters['flavor'] !== ''
+    || $filters['country'] !== ''
+    || $activeChip !== ''
+);
 
-// Hitung ringkasan analitik pita alabaster dari data katalog aktual
-$sumTaste = 0.0;
-$sumTexture = 0.0;
-$sumPortion = 0.0;
-$sumValue = 0.0;
-$sumScore = 0.0;
-$ratedCount = 0;
-$qualifiedCount = 0;
-$sumPrice = 0;
+// Analitik 4 aspek nyata untuk seluruh hasil cocok (lintas halaman) dan patokan pembanding aktual
+$analytics = get_catalog_analytics($filters);
+$benchAnalytics = $hasActiveFilter
+    ? get_catalog_analytics([])
+    : get_top_tier_aspect_averages($minRaters);
 
-foreach ($noodles as $item) {
-    $sumPrice += (int) $item['price'];
-    $rc = (int) $item['rater_count'];
-    if ($rc > 0) {
-        $ratedCount++;
-        $sumTaste += (float) $item['avg_taste'];
-        $sumTexture += (float) $item['avg_texture'];
-        $sumPortion += (float) $item['avg_portion'];
-        $sumValue += (float) $item['avg_value'];
-        $sumScore += (float) $item['avg_score'];
-    }
-    if ($rc >= $minRaters) {
-        $qualifiedCount++;
-    }
-}
-
-$noodleCount = count($noodles);
-$avgTaste = $ratedCount > 0 ? $sumTaste / $ratedCount : 0.0;
-$avgTexture = $ratedCount > 0 ? $sumTexture / $ratedCount : 0.0;
-$avgPortion = $ratedCount > 0 ? $sumPortion / $ratedCount : 0.0;
-$avgValue = $ratedCount > 0 ? $sumValue / $ratedCount : 0.0;
-$avgOverall = $ratedCount > 0 ? $sumScore / $ratedCount : 0.0;
+$benchLegendLabel = $hasActiveFilter ? 'Semua Katalog' : 'Rata-rata Tier S–A';
+$actualLegendLabel = $hasActiveFilter ? 'Hasil Filter' : 'Semua Katalog';
 
 $communitySummary = get_community_tierlist_data();
 $topTierCount = count($communitySummary['tiers']['S'] ?? []) + count($communitySummary['tiers']['A'] ?? []);
@@ -66,15 +95,47 @@ $championTier = ($championNoodle && (int) ($championNoodle['rater_count'] ?? 0) 
     : null;
 
 $chartMetrics = [
-    ['code' => 'RAS', 'label' => 'Rasa',    'val' => $avgTaste,   'bench' => 4.7],
-    ['code' => 'TEK', 'label' => 'Tekstur', 'val' => $avgTexture, 'bench' => 4.6],
-    ['code' => 'POR', 'label' => 'Porsi',   'val' => $avgPortion, 'bench' => 4.4],
-    ['code' => 'HRG', 'label' => 'Harga',   'val' => $avgValue,   'bench' => 4.6],
-    ['code' => 'AVG', 'label' => 'Skor',    'val' => $avgOverall, 'bench' => 4.5],
+    ['code' => 'RAS', 'label' => 'Rasa',    'val' => $analytics['avg_taste'],   'bench' => $benchAnalytics['avg_taste']],
+    ['code' => 'TEK', 'label' => 'Tekstur', 'val' => $analytics['avg_texture'], 'bench' => $benchAnalytics['avg_texture']],
+    ['code' => 'POR', 'label' => 'Porsi',   'val' => $analytics['avg_portion'], 'bench' => $benchAnalytics['avg_portion']],
+    ['code' => 'HRG', 'label' => 'Harga',   'val' => $analytics['avg_value'],   'bench' => $benchAnalytics['avg_value']],
+    ['code' => 'AVG', 'label' => 'Skor',    'val' => $analytics['avg_score'],   'bench' => $benchAnalytics['avg_score']],
 ];
 
 $totalTicks = 36;
 $activeTicks = (int) round(($topTierPct / 100) * $totalTicks);
+
+$activeFilterPills = [];
+if ($filters['q'] !== '') {
+    $activeFilterPills[] = [
+        'label' => 'Cari: "' . $filters['q'] . '"',
+        'url'   => $catalogUrl(['q' => '', 'page' => 1]),
+    ];
+}
+if ($filters['brand'] !== '') {
+    $activeFilterPills[] = [
+        'label' => 'Brand: ' . $filters['brand'],
+        'url'   => $catalogUrl(['brand' => '', 'page' => 1]),
+    ];
+}
+if ($filters['flavor'] !== '') {
+    $activeFilterPills[] = [
+        'label' => 'Rasa: ' . $filters['flavor'],
+        'url'   => $catalogUrl(['flavor' => '', 'page' => 1]),
+    ];
+}
+if ($filters['country'] !== '') {
+    $activeFilterPills[] = [
+        'label' => 'Negara: ' . $filters['country'],
+        'url'   => $catalogUrl(['country' => '', 'page' => 1]),
+    ];
+}
+if ($activeChip !== '') {
+    $activeFilterPills[] = [
+        'label' => 'Kategori: ' . ($chipLabels[$activeChip] ?? $activeChip),
+        'url'   => $catalogUrl(['chip' => '', 'page' => 1]),
+    ];
+}
 
 $pageTitle = 'Katalog & Rating Mie Instan';
 include __DIR__ . '/includes/header.php';
@@ -83,24 +144,31 @@ include __DIR__ . '/includes/header.php';
 <main id="main-content" class="workspace-main">
     <section class="alabaster-hero-band" aria-label="Pencarian dan Analitik Katalog">
         <form action="<?= e(base_url('index.php')) ?>" method="get" class="command-bar">
-            <div class="command-search">
+            <?php if ($activeChip !== ''): ?>
+                <input type="hidden" name="chip" value="<?= e($activeChip) ?>">
+            <?php endif; ?>
+            <?php if ($activeSort !== 'score'): ?>
+                <input type="hidden" name="sort" value="<?= e($activeSort) ?>">
+            <?php endif; ?>
+
+            <div class="command-search <?= $filters['q'] !== '' ? 'has-value' : '' ?>" id="js-command-search">
                 <span class="command-search-icon"><?= svg_icon('search', 16) ?></span>
-                <label for="filter-q" class="skip-link">Cari varian mie</label>
+                <label for="filter-q" class="sr-only">Cari varian mie</label>
                 <input
                     type="search"
                     id="filter-q"
                     name="q"
                     class="command-search-input"
                     value="<?= e($filters['q']) ?>"
-                    placeholder="Cari varian mie, brand, atau rasa..."
+                    placeholder="Cari mie, brand, rasa, negara..."
                 >
                 <kbd class="kbd-shortcut" aria-hidden="true">/</kbd>
             </div>
 
-            <div class="command-controls">
+            <div class="command-filters">
                 <div class="command-select-wrap">
-                    <label for="filter-brand" class="skip-link">Filter Brand</label>
-                    <select id="filter-brand" name="brand" class="command-select">
+                    <label for="filter-brand" class="sr-only">Filter Brand</label>
+                    <select id="filter-brand" name="brand" class="command-select <?= $filters['brand'] !== '' ? 'is-filtered' : '' ?>">
                         <option value="">Semua Brand</option>
                         <?php foreach ($options['brands'] as $b): ?>
                             <option value="<?= e($b) ?>" <?= $filters['brand'] === $b ? 'selected' : '' ?>>
@@ -111,8 +179,8 @@ include __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="command-select-wrap">
-                    <label for="filter-flavor" class="skip-link">Filter Varian Rasa</label>
-                    <select id="filter-flavor" name="flavor" class="command-select">
+                    <label for="filter-flavor" class="sr-only">Filter Varian Rasa</label>
+                    <select id="filter-flavor" name="flavor" class="command-select <?= $filters['flavor'] !== '' ? 'is-filtered' : '' ?>">
                         <option value="">Semua Rasa</option>
                         <?php foreach ($options['flavors'] as $fl): ?>
                             <option value="<?= e($fl) ?>" <?= $filters['flavor'] === $fl ? 'selected' : '' ?>>
@@ -123,8 +191,8 @@ include __DIR__ . '/includes/header.php';
                 </div>
 
                 <div class="command-select-wrap">
-                    <label for="filter-country" class="skip-link">Filter Negara</label>
-                    <select id="filter-country" name="country" class="command-select">
+                    <label for="filter-country" class="sr-only">Filter Negara</label>
+                    <select id="filter-country" name="country" class="command-select <?= $filters['country'] !== '' ? 'is-filtered' : '' ?>">
                         <option value="">Semua Negara</option>
                         <?php foreach ($options['countries'] as $c): ?>
                             <option value="<?= e($c) ?>" <?= $filters['country'] === $c ? 'selected' : '' ?>>
@@ -134,14 +202,18 @@ include __DIR__ . '/includes/header.php';
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-ghost btn-sm command-apply-btn">
-                    <?= svg_icon('sliders', 14) ?> Saring
-                </button>
+                <div class="command-filter-actions">
+                    <button type="submit" class="btn btn-command-submit btn-sm">
+                        <?= svg_icon('sliders', 14) ?> Saring
+                    </button>
 
-                <?php if ($hasActiveFilter): ?>
-                    <a href="<?= e(base_url('index.php')) ?>" class="btn btn-ghost btn-sm">Reset</a>
-                <?php endif; ?>
+                    <?php if ($hasActiveFilter): ?>
+                        <a href="<?= e($catalogUrl(['q' => '', 'brand' => '', 'flavor' => '', 'country' => '', 'chip' => '', 'page' => 1])) ?>" class="btn btn-ghost btn-sm">Reset</a>
+                    <?php endif; ?>
+                </div>
+            </div>
 
+            <div class="command-cta">
                 <a href="<?= e(base_url(current_user() !== null ? 'tierlists.php' : 'login.php')) ?>" class="btn btn-obsidian">
                     <?= svg_icon('plus', 15) ?>
                     <span>Tierlist Baru</span>
@@ -151,8 +223,20 @@ include __DIR__ . '/includes/header.php';
 
         <div class="analytics-4col">
             <div class="analytics-chart-col">
-                <h2 class="analytics-heading">Profil 4 Aspek Katalog</h2>
-                <div class="dual-bar-chart" aria-label="Perbandingan rata-rata skor 4 aspek terhadap standar ideal">
+                <div class="analytics-heading-row">
+                    <p class="analytics-heading">Profil 4 Aspek Katalog</p>
+                    <div class="dual-chart-legend" aria-hidden="true">
+                        <span class="legend-item">
+                            <span class="legend-swatch is-hatched"></span>
+                            <span><?= e($benchLegendLabel) ?></span>
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-swatch is-solid"></span>
+                            <span><?= e($actualLegendLabel) ?></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="dual-bar-chart" role="img" aria-label="Perbandingan rata-rata skor 4 aspek: <?= e($actualLegendLabel) ?> terhadap <?= e($benchLegendLabel) ?>">
                     <div class="dual-y-axis tabular" aria-hidden="true">
                         <span>5.0</span>
                         <span>2.5</span>
@@ -161,13 +245,23 @@ include __DIR__ . '/includes/header.php';
                     <div class="dual-bar-groups">
                         <?php foreach ($chartMetrics as $cm): ?>
                             <?php
-                            $actualH = (int) round(min(100, max(8, ($cm['val'] / 5.0) * 100)));
-                            $benchH = (int) round(min(100, max(12, ($cm['bench'] / 5.0) * 100)));
+                            $hasVal = $cm['val'] > 0.0;
+                            $hasBench = $cm['bench'] > 0.0;
+                            $actualH = $hasVal ? (int) round(min(100, max(6, ($cm['val'] / 5.0) * 100))) : 0;
+                            $benchH = $hasBench ? (int) round(min(100, max(6, ($cm['bench'] / 5.0) * 100))) : 0;
+                            $valText = $hasVal ? format_score($cm['val'], 2) : '–';
+                            $benchText = $hasBench ? format_score($cm['bench'], 2) : '–';
                             ?>
-                            <div class="dual-bar-col" title="<?= e($cm['label']) ?>: <?= e(format_score($cm['val'], 2)) ?> / 5.00">
+                            <div
+                                class="dual-bar-col"
+                                tabindex="0"
+                                aria-label="<?= e($cm['label']) ?>: <?= e($valText) ?> dari 5.00 (<?= e($benchLegendLabel) ?> <?= e($benchText) ?>)"
+                                title="<?= e($cm['label']) ?>: <?= e($valText) ?> / 5.00 · <?= e($benchLegendLabel) ?>: <?= e($benchText) ?>"
+                            >
                                 <div class="dual-bar-pair">
-                                    <span class="bar-hatched" style="height:<?= $benchH ?>%"></span>
-                                    <span class="bar-solid" style="height:<?= $actualH ?>%"></span>
+                                    <span class="dual-bar-val tabular" aria-hidden="true"><?= e($valText) ?></span>
+                                    <span class="bar-hatched <?= $hasBench ? '' : 'is-empty' ?>" style="height:<?= $benchH ?>%"></span>
+                                    <span class="bar-solid <?= $hasVal ? '' : 'is-empty' ?>" style="height:<?= $actualH ?>%"></span>
                                 </div>
                                 <span class="dual-bar-label tabular"><?= e($cm['code']) ?></span>
                             </div>
@@ -177,7 +271,7 @@ include __DIR__ . '/includes/header.php';
             </div>
 
             <div class="analytics-gauge-col">
-                <svg class="radial-gauge-svg" viewBox="0 0 210 118" role="img" aria-label="<?= $topTierCount ?> mie berada di Tier S dan Tier A">
+                <svg class="radial-gauge-svg" viewBox="0 0 210 118" role="img" aria-label="<?= $topTierCount ?> dari <?= $totalQualified ?> mie yang lolos syarat berada di Tier S dan Tier A (<?= $topTierPct ?>%)">
                     <g transform="translate(105, 100)">
                         <?php for ($i = 0; $i < $totalTicks; $i++): ?>
                             <?php
@@ -193,7 +287,7 @@ include __DIR__ . '/includes/header.php';
                         <?php endfor; ?>
                     </g>
                     <text x="105" y="74" text-anchor="middle" class="gauge-value-text tabular"><?= $topTierCount ?> Mie</text>
-                    <text x="105" y="96" text-anchor="middle" class="gauge-caption-text">Di Tier S &amp; Tier A</text>
+                    <text x="105" y="96" text-anchor="middle" class="gauge-caption-text">Tier S–A (<?= $topTierCount ?>/<?= $totalQualified ?> lolos)</text>
                 </svg>
             </div>
 
@@ -219,9 +313,10 @@ include __DIR__ . '/includes/header.php';
                 <div class="fluid-kpi-foot">
                     <span class="fluid-kpi-label">
                         <?php if ($championNoodle): ?>
-                            #1 <?= e($championNoodle['name']) ?><br><?= $championTier ? 'Juara Tier ' . e($championTier) . ' saat ini' : 'Kandidat teratas' ?>
+                            <span class="kpi-champion-name" title="#1 <?= e($championNoodle['name']) ?>">#1 <?= e($championNoodle['name']) ?></span>
+                            <span class="kpi-champion-sub"><?= $championTier ? 'Juara Tier ' . e($championTier) . ' saat ini' : 'Kandidat teratas' ?></span>
                         <?php else: ?>
-                            Belum ada<br>peringkat juara
+                            <span>Belum ada<br>peringkat juara</span>
                         <?php endif; ?>
                     </span>
                     <a href="<?= e(base_url($championNoodle ? 'noodle.php?id=' . (int) $championNoodle['id'] : 'top10.php')) ?>" class="fluid-kpi-arrow" aria-label="Lihat Juara #1">
@@ -233,27 +328,70 @@ include __DIR__ . '/includes/header.php';
     </section>
 
     <div class="workspace-canvas">
-        <div class="board-toolbar">
-            <div class="board-title-group">
-                <h1>Katalog &amp; Indeks Rasa</h1>
-                <span class="count-sort-badge tabular">
-                    <span id="js-visible-count"><?= (int) $noodleCount ?></span>
-                    <?= svg_icon('sort', 13) ?>
-                </span>
+        <div class="board-header-stack">
+            <div class="board-toolbar">
+                <div class="board-title-group">
+                    <h1>Katalog &amp; Indeks Rasa</h1>
+                    <span class="count-badge tabular" title="Menampilkan <?= (int) $noodleCount ?> dari <?= (int) $catalog['total'] ?> varian">
+                        <?= (int) $catalog['total'] ?> varian
+                    </span>
+                    <form action="<?= e(base_url('index.php')) ?>" method="get" class="sort-control-form">
+                        <?php foreach (['q', 'brand', 'flavor', 'country', 'chip'] as $paramKey): ?>
+                            <?php if (($filters[$paramKey] ?? '') !== ''): ?>
+                                <input type="hidden" name="<?= e($paramKey) ?>" value="<?= e($filters[$paramKey]) ?>">
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                        <label for="filter-sort" class="sr-only">Urutkan katalog</label>
+                        <div class="sort-select-wrap">
+                            <span class="sort-select-icon" aria-hidden="true"><?= svg_icon('sort', 13) ?></span>
+                            <select id="filter-sort" name="sort" class="sort-select js-auto-sort">
+                                <?php foreach ($sortOptions as $sKey => $sLabel): ?>
+                                    <option value="<?= e($sKey) ?>" <?= $activeSort === $sKey ? 'selected' : '' ?>>
+                                        <?= e($sLabel) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <noscript>
+                            <button type="submit" class="btn btn-secondary btn-sm">Urutkan</button>
+                        </noscript>
+                    </form>
+                </div>
+
+                <nav class="quick-chips-bar" aria-label="Saring Cepat Kategori">
+                    <?php foreach ($chipLabels as $cKey => $cLabel): ?>
+                        <?php
+                        $chipParam = $cKey === 'all' ? '' : $cKey;
+                        $isChipActive = ($activeChip === $chipParam);
+                        ?>
+                        <a
+                            href="<?= e($catalogUrl(['chip' => $chipParam, 'page' => 1])) ?>"
+                            class="chip-pill <?= $isChipActive ? 'is-active' : '' ?>"
+                            <?= $isChipActive ? 'aria-current="true"' : '' ?>
+                        ><?= e($cLabel) ?></a>
+                    <?php endforeach; ?>
+                </nav>
             </div>
 
-            <div class="quick-chips-bar" role="toolbar" aria-label="Saring Cepat Halaman Ini">
-                <button type="button" class="chip-pill is-active js-quick-chip" data-chip="all">Semua</button>
-                <button type="button" class="chip-pill js-quick-chip" data-chip="goreng">Mi Goreng</button>
-                <button type="button" class="chip-pill js-quick-chip" data-chip="kuah">Mi Kuah</button>
-                <button type="button" class="chip-pill js-quick-chip" data-chip="pedas">Pedas</button>
-                <button type="button" class="chip-pill js-quick-chip" data-chip="budget">Hemat &le; Rp 5.000</button>
-                <button type="button" class="chip-pill js-quick-chip" data-chip="import">Impor</button>
-            </div>
+            <?php if (!empty($activeFilterPills)): ?>
+                <div class="active-filters-strip" aria-label="Filter yang sedang aktif">
+                    <span class="active-filters-label">Filter aktif:</span>
+                    <?php foreach ($activeFilterPills as $pill): ?>
+                        <a href="<?= e($pill['url']) ?>" class="active-filter-pill" title="Hapus <?= e($pill['label']) ?>">
+                            <span><?= e($pill['label']) ?></span>
+                            <?= svg_icon('x', 12) ?>
+                        </a>
+                    <?php endforeach; ?>
+                    <a href="<?= e($catalogUrl(['q' => '', 'brand' => '', 'flavor' => '', 'country' => '', 'chip' => '', 'page' => 1])) ?>" class="active-filter-clear">
+                        Reset Semua
+                    </a>
+                </div>
+            <?php endif; ?>
         </div>
 
         <?php if (empty($noodles)): ?>
             <div class="empty-state">
+                <span class="empty-state-icon" aria-hidden="true"><?= svg_icon('search', 22) ?></span>
                 <h2>Belum Ada Mie yang Cocok</h2>
                 <p>Tidak ditemukan varian mie instan dengan kriteria pencarian atau filter tersebut.</p>
                 <?php if ($hasActiveFilter): ?>
@@ -268,33 +406,32 @@ include __DIR__ . '/includes/header.php';
                     $avgScore = $raterCount > 0 ? (float) $noodle['avg_score'] : null;
                     $tierLetter = ($avgScore !== null && $raterCount >= $minRaters) ? score_to_tier($avgScore) : null;
                     $priceInt = (int) $noodle['price'];
-                    $flavorLower = mb_strtolower($noodle['flavor'] . ' ' . $noodle['name'], 'UTF-8');
-                    $isGoreng = str_contains($flavorLower, 'goreng') ? '1' : '0';
-                    $isKuah = (str_contains($flavorLower, 'kuah') || str_contains($flavorLower, 'soto') || str_contains($flavorLower, 'ramyun') || str_contains($flavorLower, 'tonkotsu') || str_contains($flavorLower, 'laksa') || str_contains($flavorLower, 'tom yum') || str_contains($flavorLower, 'cup')) ? '1' : '0';
-                    $isPedas = (str_contains($flavorLower, 'pedas') || str_contains($flavorLower, 'spicy') || str_contains($flavorLower, 'buldak') || str_contains($flavorLower, 'shin') || str_contains($flavorLower, 'aceh')) ? '1' : '0';
-                    $isImport = strcasecmp((string) $noodle['origin_country'], 'Indonesia') !== 0 ? '1' : '0';
 
                     $aspects = [
-                        ['code' => 'RAS', 'val' => $raterCount > 0 ? (float) $noodle['avg_taste'] : null],
-                        ['code' => 'TEK', 'val' => $raterCount > 0 ? (float) $noodle['avg_texture'] : null],
-                        ['code' => 'POR', 'val' => $raterCount > 0 ? (float) $noodle['avg_portion'] : null],
-                        ['code' => 'HRG', 'val' => $raterCount > 0 ? (float) $noodle['avg_value'] : null],
+                        ['code' => 'RAS', 'name' => 'Rasa',    'val' => $raterCount > 0 ? (float) $noodle['avg_taste'] : null],
+                        ['code' => 'TEK', 'name' => 'Tekstur', 'val' => $raterCount > 0 ? (float) $noodle['avg_texture'] : null],
+                        ['code' => 'POR', 'name' => 'Porsi',   'val' => $raterCount > 0 ? (float) $noodle['avg_portion'] : null],
+                        ['code' => 'HRG', 'name' => 'Harga',   'val' => $raterCount > 0 ? (float) $noodle['avg_value'] : null],
                     ];
                     $isSpotlightDefault = ($idx === 0);
+                    $tierStatusText = $tierLetter !== null
+                        ? 'Tier ' . $tierLetter . ' · ' . $raterCount . ' penilai'
+                        : ($raterCount > 0
+                            ? 'Butuh ' . max(1, $minRaters - $raterCount) . ' penilai lagi'
+                            : 'Belum ada penilai');
                     ?>
-                    <article
-                        class="noodle-card js-catalog-card <?= $isSpotlightDefault ? 'is-spotlight' : '' ?>"
-                        data-goreng="<?= $isGoreng ?>"
-                        data-kuah="<?= $isKuah ?>"
-                        data-pedas="<?= $isPedas ?>"
-                        data-budget="<?= $priceInt <= 5000 ? '1' : '0' ?>"
-                        data-import="<?= $isImport ?>"
-                        data-search="<?= e(mb_strtolower($noodle['name'] . ' ' . $noodle['brand'] . ' ' . $noodle['flavor'] . ' ' . $noodle['origin_country'], 'UTF-8')) ?>"
-                    >
+                    <article class="noodle-card js-catalog-card <?= $isSpotlightDefault ? 'is-spotlight' : '' ?>">
                         <div class="noodle-card-body">
+                            <button
+                                type="button"
+                                class="spotlight-pin-btn js-spotlight-btn"
+                                aria-pressed="<?= $isSpotlightDefault ? 'true' : 'false' ?>"
+                                aria-label="Sorot <?= e($noodle['name']) ?>"
+                            ><?= $isSpotlightDefault ? 'Disorot' : 'Sorot' ?></button>
+
                             <div class="noodle-card-head">
                                 <a href="<?= e(base_url('noodle.php?id=' . (int) $noodle['id'])) ?>" class="noodle-swatch-link" aria-label="Buka detail <?= e($noodle['name']) ?>">
-                                    <?= render_noodle_swatch($noodle, 'swatch-catalog') ?>
+                                    <?= render_noodle_swatch($noodle, 'swatch-catalog', $idx < 3) ?>
                                 </a>
                                 <div class="noodle-head-copy">
                                     <div class="noodle-card-meta">
@@ -325,13 +462,13 @@ include __DIR__ . '/includes/header.php';
                             </p>
 
                             <div class="noodle-spotlight-meta">
-                                <div class="spotlight-detail-row">
-                                    <span class="spotlight-detail-label">Varian &amp; Syarat Tier</span>
-                                    <strong><?= e($noodle['flavor']) ?> · Min. <?= $minRaters ?> penilai</strong>
+                                <div class="spotlight-detail-cell">
+                                    <span class="spotlight-detail-label">Varian Rasa</span>
+                                    <strong title="<?= e($noodle['flavor']) ?>"><?= e($noodle['flavor']) ?></strong>
                                 </div>
-                                <div class="spotlight-detail-row">
-                                    <span class="spotlight-detail-label">Asal Produk</span>
-                                    <strong><?= e($noodle['origin_country']) ?></strong>
+                                <div class="spotlight-detail-cell">
+                                    <span class="spotlight-detail-label">Status Tier</span>
+                                    <strong title="<?= e($tierStatusText) ?>"><?= e($tierStatusText) ?></strong>
                                 </div>
                             </div>
 
@@ -346,7 +483,7 @@ include __DIR__ . '/includes/header.php';
                                     }
                                     ?>
                                     <div class="aspect-bar-item">
-                                        <dt class="tabular"><?= e($asp['code']) ?></dt>
+                                        <dt class="tabular"><abbr title="<?= e($asp['name']) ?>"><?= e($asp['code']) ?></abbr></dt>
                                         <dd class="aspect-bar-cell">
                                             <span class="aspect-micro-track" aria-hidden="true">
                                                 <span class="aspect-micro-fill <?= $barTone ?>" style="width:<?= round($pct, 1) ?>%"></span>
@@ -380,31 +517,45 @@ include __DIR__ . '/includes/header.php';
                 <?php endforeach; ?>
             </div>
 
-            <div id="js-chip-empty" class="empty-state" hidden>
-                <h2>Tidak Ada Mie pada Filter Cepat Ini</h2>
-                <p>Coba pilih chip kategori lain atau tekan Semua.</p>
-            </div>
-
             <?php if ($catalog['total_pages'] > 1): ?>
+                <?php
+                $curPage = (int) $catalog['page'];
+                $totalPages = (int) $catalog['total_pages'];
+                ?>
                 <nav class="pagination-bar" aria-label="Navigasi Halaman Katalog">
-                    <span>Halaman <strong><?= (int) $catalog['page'] ?></strong> dari <strong><?= (int) $catalog['total_pages'] ?></strong> · <?= (int) $catalog['total'] ?> mie</span>
+                    <span>Halaman <strong><?= $curPage ?></strong> dari <strong><?= $totalPages ?></strong> · <?= (int) $catalog['total'] ?> mie</span>
                     <div class="pagination-links">
-                        <?php for ($p = 1; $p <= $catalog['total_pages']; $p++): ?>
-                            <?php
-                            $query = http_build_query(array_filter([
-                                'q'       => $filters['q'],
-                                'brand'   => $filters['brand'],
-                                'flavor'  => $filters['flavor'],
-                                'country' => $filters['country'],
-                                'page'    => $p,
-                            ], static fn($v) => $v !== '' && $v !== null));
-                            ?>
+                        <?php if ($curPage > 1): ?>
+                            <a href="<?= e($catalogUrl(['page' => $curPage - 1])) ?>" class="page-btn page-btn-nav">
+                                <?= svg_icon('arrow-left', 13) ?>
+                                <span>Sebelumnya</span>
+                            </a>
+                        <?php else: ?>
+                            <span class="page-btn page-btn-nav is-disabled" aria-disabled="true">
+                                <?= svg_icon('arrow-left', 13) ?>
+                                <span>Sebelumnya</span>
+                            </span>
+                        <?php endif; ?>
+
+                        <?php for ($p = 1; $p <= $totalPages; $p++): ?>
                             <a
-                                href="<?= e(base_url('index.php?' . $query)) ?>"
-                                class="page-btn <?= $p === $catalog['page'] ? 'is-current' : '' ?>"
-                                <?= $p === $catalog['page'] ? 'aria-current="page"' : '' ?>
+                                href="<?= e($catalogUrl(['page' => $p])) ?>"
+                                class="page-btn <?= $p === $curPage ? 'is-current' : '' ?>"
+                                <?= $p === $curPage ? 'aria-current="page"' : '' ?>
                             ><?= $p ?></a>
                         <?php endfor; ?>
+
+                        <?php if ($curPage < $totalPages): ?>
+                            <a href="<?= e($catalogUrl(['page' => $curPage + 1])) ?>" class="page-btn page-btn-nav">
+                                <span>Berikutnya</span>
+                                <?= svg_icon('arrow-right', 13) ?>
+                            </a>
+                        <?php else: ?>
+                            <span class="page-btn page-btn-nav is-disabled" aria-disabled="true">
+                                <span>Berikutnya</span>
+                                <?= svg_icon('arrow-right', 13) ?>
+                            </span>
+                        <?php endif; ?>
                     </div>
                 </nav>
             <?php endif; ?>
@@ -414,51 +565,54 @@ include __DIR__ . '/includes/header.php';
 
 <script>
 (function () {
+    var searchWrap = document.getElementById('js-command-search');
     var searchInput = document.getElementById('filter-q');
-    var chips = document.querySelectorAll('.js-quick-chip');
+    var sortSelect = document.querySelector('.js-auto-sort');
     var cards = document.querySelectorAll('.js-catalog-card');
-    var emptyNotice = document.getElementById('js-chip-empty');
-    var countEl = document.getElementById('js-visible-count');
-    var activeChip = 'all';
 
-    document.addEventListener('keydown', function (ev) {
-        if (ev.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA', 'SELECT'].includes((document.activeElement || {}).tagName)) {
-            ev.preventDefault();
-            if (searchInput) searchInput.focus();
-        }
-    });
-
-    function applyClientFilter() {
-        if (!cards.length) return;
-        var visible = 0;
-        cards.forEach(function (card) {
-            var matchChip = (activeChip === 'all') || (card.getAttribute('data-' + activeChip) === '1');
-            card.hidden = !matchChip;
-            if (matchChip) visible++;
-        });
-        if (countEl) {
-            countEl.textContent = String(visible);
-        }
-        if (emptyNotice) {
-            emptyNotice.hidden = visible > 0;
-        }
+    if (searchInput && searchWrap) {
+        var syncSearchHasValue = function () {
+            searchWrap.classList.toggle('has-value', searchInput.value.trim() !== '');
+        };
+        searchInput.addEventListener('input', syncSearchHasValue);
+        syncSearchHasValue();
     }
 
-    chips.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            activeChip = btn.getAttribute('data-chip') || 'all';
-            chips.forEach(function (c) {
-                c.classList.toggle('is-active', c === btn);
-            });
-            applyClientFilter();
-        });
+    document.addEventListener('keydown', function (ev) {
+        if (ev.key === '/' && searchInput && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA', 'SELECT'].includes((document.activeElement || {}).tagName)) {
+            ev.preventDefault();
+            searchInput.focus();
+        }
     });
 
+    if (sortSelect && sortSelect.form) {
+        sortSelect.addEventListener('change', function () {
+            sortSelect.form.submit();
+        });
+    }
+
+    function setSpotlight(targetCard) {
+        cards.forEach(function (card) {
+            var active = (card === targetCard);
+            card.classList.toggle('is-spotlight', active);
+            var btn = card.querySelector('.js-spotlight-btn');
+            if (btn) {
+                btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+                btn.textContent = active ? 'Disorot' : 'Sorot';
+            }
+        });
+    }
+
     cards.forEach(function (card) {
+        var spotBtn = card.querySelector('.js-spotlight-btn');
+        if (spotBtn) {
+            spotBtn.addEventListener('click', function () {
+                setSpotlight(card);
+            });
+        }
         card.addEventListener('click', function (ev) {
             if (ev.target.closest('a, button')) return;
-            cards.forEach(function (c) { c.classList.remove('is-spotlight'); });
-            card.classList.add('is-spotlight');
+            setSpotlight(card);
         });
     });
 })();
