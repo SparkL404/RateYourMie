@@ -149,6 +149,7 @@ function svg_icon(string $name, int $size = 18): string
         'tag'         => "<svg $attrs><path d=\"M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z\"/><path d=\"M7 7h.01\"/></svg>",
         'logout'      => "<svg $attrs><path d=\"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4\"/><polyline points=\"16 17 21 12 16 7\"/><line x1=\"21\" y1=\"12\" x2=\"9\" y2=\"12\"/></svg>",
         'trophy'      => "<svg $attrs><path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5H6\"/><path d=\"M18 9h1.5a2.5 2.5 0 0 0 0-5H18\"/><path d=\"M4 22h16\"/><path d=\"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22\"/><path d=\"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22\"/><path d=\"M18 2H6v7a6 6 0 0 0 12 0V2Z\"/></svg>",
+        'x'           => "<svg $attrs><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg>",
         default       => "<svg $attrs><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg>",
     };
 }
@@ -191,7 +192,7 @@ function noodle_brand_initials(string $brand): string
 /**
  * Merender stempel monogram brand (swatch-xs/sm/md/lg/catalog/hero) atau thumbnail foto kemasan jika ada.
  */
-function render_noodle_swatch(array $noodle, string $sizeClass = 'swatch-md'): string
+function render_noodle_swatch(array $noodle, string $sizeClass = 'swatch-md', bool $eager = false): string
 {
     $imageFile = trim((string) ($noodle['image'] ?? ''));
     if ($imageFile !== '') {
@@ -199,7 +200,25 @@ function render_noodle_swatch(array $noodle, string $sizeClass = 'swatch-md'): s
         if (is_file($fullPath)) {
             $src = e(base_url('uploads/' . basename($imageFile)));
             $alt = e($noodle['name'] ?? 'Kemasan Mie');
-            return '<span class="brand-swatch brand-swatch-photo ' . e($sizeClass) . '"><img src="' . $src . '" alt="' . $alt . '" loading="lazy"></span>';
+            $dim = match ($sizeClass) {
+                'swatch-xs'      => 24,
+                'swatch-sm'      => 34,
+                'swatch-md'      => 40,
+                'swatch-catalog' => 64,
+                'swatch-lg'      => 72,
+                'swatch-hero'    => 140,
+                default          => 40,
+            };
+            $loading = $eager ? 'eager' : 'lazy';
+            return sprintf(
+                '<span class="brand-swatch brand-swatch-photo %s"><img src="%s" alt="%s" width="%d" height="%d" decoding="async" loading="%s"></span>',
+                e($sizeClass),
+                $src,
+                $alt,
+                $dim,
+                $dim,
+                $loading
+            );
         }
     }
 

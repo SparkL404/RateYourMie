@@ -3,7 +3,7 @@ declare(strict_types=1);
 ?>
 <?php if (empty($hideFooter)): ?>
             <footer class="site-footer">
-                <div class="container footer-inner">
+                <div class="footer-inner">
                     <div class="footer-brand">
                         <strong><?= e(SITE_NAME) ?></strong>
                         <span>Indeks 4 aspek (Rasa, Tekstur, Porsi, Harga) · Syarat tier komunitas min. <?= (int) (get_app_settings()['min_raters'] ?? MIN_RATERS) ?> penilai</span>
@@ -26,9 +26,18 @@ declare(strict_types=1);
 
     <script>
     (function () {
-        document.querySelectorAll('.js-theme-toggle').forEach(function (btn) {
+        var themeButtons = document.querySelectorAll('.js-theme-toggle');
+        function syncThemeButtons(isDark) {
+            themeButtons.forEach(function (btn) {
+                btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+            });
+        }
+        syncThemeButtons(document.documentElement.classList.contains('dark'));
+
+        themeButtons.forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var isDark = document.documentElement.classList.toggle('dark');
+                syncThemeButtons(isDark);
                 try {
                     localStorage.setItem('rym_theme', isDark ? 'dark' : 'light');
                 } catch (e) {}
