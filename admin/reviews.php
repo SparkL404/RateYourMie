@@ -154,7 +154,7 @@ include __DIR__ . '/../includes/header.php';
                             <span class="tabular muted-inline">#<?= (int) $rv['id'] ?></span>
                             <strong>@<?= e($rv['username']) ?></strong>
                             <span class="muted-inline">menilai</span>
-                            <a href="<?= e(base_url('noodle.php?id=' . (int) $rv['noodle_id'])) ?>" class="table-item-title"><?= e($rv['noodle_name']) ?></a>
+                            <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $rv['noodle_id'])) ?>" class="table-item-title"><?= e($rv['noodle_name']) ?></a>
                             <span class="tabular muted-inline">· <?= e(substr((string) $rv['created_at'], 0, 16)) ?></span>
                         </div>
 

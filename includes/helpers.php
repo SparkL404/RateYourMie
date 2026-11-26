@@ -19,8 +19,11 @@ function base_url(string $path = ''): string
 {
     $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '/index.php');
     $dir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
-    if (str_ends_with($dir, '/admin') || str_ends_with($dir, '/api')) {
-        $dir = rtrim(str_replace('\\', '/', dirname($dir)), '/');
+    foreach (['/admin', '/api', '/auth', '/pages'] as $subDir) {
+        if (str_ends_with($dir, $subDir)) {
+            $dir = rtrim(str_replace('\\', '/', dirname($dir)), '/');
+            break;
+        }
     }
     $base = ($dir === '' || $dir === '.') ? '' : $dir;
     $cleanPath = ltrim($path, '/');

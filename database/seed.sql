@@ -3,7 +3,7 @@
 --   Admin : username = admin       | password = AdminMie123!
 --   User  : username = budi_mie    | password = UserMie123!
 --   User  : username = siti_ramen  | password = UserMie123!
---   User  : username = andi_warkop | password = UserMie123!
+--   User  : username = andi_kuah   | password = UserMie123!
 --   User  : username = dewi_pedas  | password = UserMie123!
 
 SET NAMES utf8mb4;
@@ -17,11 +17,11 @@ INSERT INTO settings (key_name, key_value) VALUES
 ('tier_D', '2.00');
 
 INSERT INTO users (id, username, email, password_hash, role, email_verified, created_at) VALUES
-(1, 'admin', 'admin@warkopmietier.local', '$2y$10$uVQ2IGps9FMbVhqG/QTe7e/nu2nr8h6Uw5W5TzsYXnIAjUgtoD4me', 'admin', 1, '2026-11-01 08:00:00'),
-(2, 'budi_mie', 'budi@warkopmietier.local', '$2y$10$XKSmik8qDiZwDbVI.AVP8eRBA2yyGlwh7BNMn4QKB6p9iUgBTF.r6', 'user', 1, '2026-11-02 09:15:00'),
-(3, 'siti_ramen', 'siti@warkopmietier.local', '$2y$10$XKSmik8qDiZwDbVI.AVP8eRBA2yyGlwh7BNMn4QKB6p9iUgBTF.r6', 'user', 1, '2026-11-03 11:30:00'),
-(4, 'andi_warkop', 'andi@warkopmietier.local', '$2y$10$XKSmik8qDiZwDbVI.AVP8eRBA2yyGlwh7BNMn4QKB6p9iUgBTF.r6', 'user', 0, '2026-11-04 14:20:00'),
-(5, 'dewi_pedas', 'dewi@warkopmietier.local', '$2y$10$XKSmik8qDiZwDbVI.AVP8eRBA2yyGlwh7BNMn4QKB6p9iUgBTF.r6', 'user', 0, '2026-11-05 19:45:00');
+(1, 'admin', 'admin@rateyourmie.local', '$2y$10$uVQ2IGps9FMbVhqG/QTe7e/nu2nr8h6Uw5W5TzsYXnIAjUgtoD4me', 'admin', 1, '2026-11-01 08:00:00'),
+(2, 'budi_mie', 'budi@rateyourmie.local', '$2y$10$XKSmik8qDiZwDbVI.AVP8eRBA2yyGlwh7BNMn4QKB6p9iUgBTF.r6', 'user', 1, '2026-11-02 09:15:00'),
+(3, 'siti_ramen', 'siti@rateyourmie.local', '$2y$10$XKSmik8qDiZwDbVI.AVP8eRBA2yyGlwh7BNMn4QKB6p9iUgBTF.r6', 'user', 1, '2026-11-03 11:30:00'),
+(4, 'andi_kuah', 'andi@rateyourmie.local', '$2y$10$XKSmik8qDiZwDbVI.AVP8eRBA2yyGlwh7BNMn4QKB6p9iUgBTF.r6', 'user', 0, '2026-11-04 14:20:00'),
+(5, 'dewi_pedas', 'dewi@rateyourmie.local', '$2y$10$XKSmik8qDiZwDbVI.AVP8eRBA2yyGlwh7BNMn4QKB6p9iUgBTF.r6', 'user', 0, '2026-11-05 19:45:00');
 
 INSERT INTO noodles (id, name, brand, flavor, origin_country, price, description, image, created_at) VALUES
 (1, 'Indomie Mi Goreng Spesial', 'Indomie', 'Mi Goreng Original', 'Indonesia', 3100, 'Standar emas mie goreng instan Indonesia dengan paduan kecap manis, minyak bawang, saus cabai, dan bawang goreng renyah.', 'noodle-01-indomie-goreng.jpg', '2026-11-01 09:00:00'),

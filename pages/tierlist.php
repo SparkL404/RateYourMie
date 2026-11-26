@@ -1,15 +1,15 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/noodle_repo.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/noodle_repo.php';
 
 $user = require_login();
 $pdo = db();
 
 $tierlistId = (int) ($_GET['id'] ?? 0);
 if ($tierlistId <= 0) {
-    redirect('tierlists.php');
+    redirect('pages/tierlists.php');
 }
 
 $stmt = $pdo->prepare('SELECT * FROM tierlists WHERE id = :id LIMIT 1');
@@ -19,26 +19,26 @@ $tierlist = $stmt->fetch();
 if (!$tierlist) {
     http_response_code(404);
     $pageTitle = 'Tierlist Tidak Ditemukan';
-    include __DIR__ . '/includes/header.php';
+    include __DIR__ . '/../includes/header.php';
     echo '<main id="main-content" class="container section-block"><div class="empty-state">'
         . '<h1>404 — Tierlist Tidak Ditemukan</h1>'
         . '<p>Tierlist yang Anda cari tidak tersedia atau telah dihapus.</p>'
-        . '<a href="' . e(base_url('tierlists.php')) . '" class="btn btn-primary">Kembali ke Tierlist Saya</a>'
+        . '<a href="' . e(base_url('pages/tierlists.php')) . '" class="btn btn-primary">Kembali ke Tierlist Saya</a>'
         . '</div></main>';
-    include __DIR__ . '/includes/footer.php';
+    include __DIR__ . '/../includes/footer.php';
     exit;
 }
 
 if ((int) $tierlist['user_id'] !== (int) $user['id']) {
     http_response_code(403);
     $pageTitle = 'Akses Ditolak';
-    include __DIR__ . '/includes/header.php';
+    include __DIR__ . '/../includes/header.php';
     echo '<main id="main-content" class="container section-block"><div class="empty-state">'
         . '<h1>403 — Akses Tierlist Ditolak</h1>'
         . '<p>Anda hanya dapat membuka dan menyusun tierlist pribadi milik Anda sendiri.</p>'
-        . '<a href="' . e(base_url('tierlists.php')) . '" class="btn btn-primary">Buka Tierlist Saya</a>'
+        . '<a href="' . e(base_url('pages/tierlists.php')) . '" class="btn btn-primary">Buka Tierlist Saya</a>'
         . '</div></main>';
-    include __DIR__ . '/includes/footer.php';
+    include __DIR__ . '/../includes/footer.php';
     exit;
 }
 
@@ -135,7 +135,7 @@ function render_tierlist_card_item(array $noodle): string
         . '</article>',
         $nid,
         render_noodle_swatch($noodle, 'swatch-xs'),
-        e(base_url('noodle.php?id=' . $nid)),
+        e(base_url('pages/noodle.php?id=' . $nid)),
         e($noodle['name']),
         e($noodle['name']),
         e($noodle['brand']),
@@ -151,12 +151,12 @@ function render_tierlist_card_item(array $noodle): string
 }
 
 $pageTitle = 'Susun Tierlist: ' . $tierlist['title'];
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <main id="main-content" class="container section-block" data-tierlist-id="<?= (int) $tierlist['id'] ?>">
     <div class="breadcrumb-bar">
-        <a href="<?= e(base_url('tierlists.php')) ?>" class="back-link">
+        <a href="<?= e(base_url('pages/tierlists.php')) ?>" class="back-link">
             <?= svg_icon('arrow-left', 15) ?> Kembali ke Tierlist Saya
         </a>
         <span class="muted-hint">
@@ -226,4 +226,4 @@ include __DIR__ . '/includes/header.php';
 </main>
 
 <script src="<?= e(base_url('assets/js/tierlist.js')) ?>"></script>
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

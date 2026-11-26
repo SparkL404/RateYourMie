@@ -61,5 +61,5 @@ json_response(true, [
     'tierlist_id' => $newId,
     'title'       => $title,
     'category'    => $category !== '' ? $category : null,
-    'url'         => base_url('tierlist.php?id=' . $newId),
+    'url'         => base_url('pages/tierlist.php?id=' . $newId),
 ], 201);

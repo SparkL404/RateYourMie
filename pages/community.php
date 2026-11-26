@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/noodle_repo.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/noodle_repo.php';
 
 $communityData = get_community_tierlist_data();
 $minRaters = (int) $communityData['min_raters'];
@@ -31,7 +31,7 @@ $tierCounts = [
 $maxTierBucket = max(1, max($tierCounts), 4);
 
 $pageTitle = 'Tierlist Komunitas Otomatis';
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <main id="main-content" class="workspace-main">
@@ -43,10 +43,10 @@ include __DIR__ . '/includes/header.php';
             </div>
 
             <div class="command-controls">
-                <a href="<?= e(base_url('top10.php')) ?>" class="btn btn-ghost btn-sm command-apply-btn">
+                <a href="<?= e(base_url('pages/top10.php')) ?>" class="btn btn-ghost btn-sm command-apply-btn">
                     <?= svg_icon('trophy', 14) ?> Top 10
                 </a>
-                <a href="<?= e(base_url(current_user() !== null ? 'tierlists.php' : 'login.php')) ?>" class="btn btn-obsidian">
+                <a href="<?= e(base_url(current_user() !== null ? 'pages/tierlists.php' : 'auth/login.php')) ?>" class="btn btn-obsidian">
                     <?= svg_icon('plus', 15) ?>
                     <span>Susun Tierlist Pribadi</span>
                 </a>
@@ -128,7 +128,7 @@ include __DIR__ . '/includes/header.php';
                             Syarat minimal<br><?= $minRaters ?> penilai
                         <?php endif; ?>
                     </span>
-                    <a href="<?= e(base_url($championNoodle ? 'noodle.php?id=' . (int) $championNoodle['id'] : 'top10.php')) ?>" class="fluid-kpi-arrow" aria-label="Buka Top 10">
+                    <a href="<?= e(base_url($championNoodle ? 'pages/noodle.php?id=' . (int) $championNoodle['id'] : 'pages/top10.php')) ?>" class="fluid-kpi-arrow" aria-label="Buka Top 10">
                         <?= svg_icon('arrow-right', 16) ?>
                     </a>
                 </div>
@@ -172,10 +172,10 @@ include __DIR__ . '/includes/header.php';
                                 ?>
                                 <article class="tier-item-card is-static js-community-card <?= $isSpot ? 'is-spotlight' : '' ?>">
                                     <div class="tier-card-top">
-                                        <a href="<?= e(base_url('noodle.php?id=' . (int) $noodle['id'])) ?>" class="tier-item-swatch">
+                                        <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $noodle['id'])) ?>" class="tier-item-swatch">
                                             <?= render_noodle_swatch($noodle, 'swatch-xs') ?>
                                         </a>
-                                        <a href="<?= e(base_url('noodle.php?id=' . (int) $noodle['id'])) ?>" class="tier-item-name" title="<?= e($noodle['name']) ?>">
+                                        <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $noodle['id'])) ?>" class="tier-item-name" title="<?= e($noodle['name']) ?>">
                                             <?= e($noodle['name']) ?>
                                         </a>
                                     </div>
@@ -202,7 +202,7 @@ include __DIR__ . '/includes/header.php';
                 </div>
                 <div class="pending-list">
                     <?php foreach ($pending as $pNoodle): ?>
-                        <a href="<?= e(base_url('noodle.php?id=' . (int) $pNoodle['id'])) ?>" class="pending-chip">
+                        <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $pNoodle['id'])) ?>" class="pending-chip">
                             <strong><?= e($pNoodle['name']) ?></strong>
                             <span class="tabular">
                                 <?= (int) $pNoodle['rater_count'] ?>/<?= $minRaters ?> penilai
@@ -231,4 +231,4 @@ include __DIR__ . '/includes/header.php';
 })();
 </script>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

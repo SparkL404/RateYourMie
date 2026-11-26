@@ -21,8 +21,8 @@ Dibangun menggunakan **PHP native (tanpa framework)**, **MySQL/MariaDB via PDO (
      CREATE DATABASE rating_mie CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
      ```
    - Impor file skema tabel dan data awal secara berurutan:
-     1. [`database/schema.sql`](file:///e:/Tugas%20Vscode/PemWeb/Rating%20Mie/database/schema.sql)
-     2. [`database/seed.sql`](file:///e:/Tugas%20Vscode/PemWeb/Rating%20Mie/database/seed.sql)
+     1. [`database/schema.sql`](database/schema.sql)
+     2. [`database/seed.sql`](database/seed.sql)
    - Melalui CLI MySQL:
      ```bash
      mysql -u root -e "CREATE DATABASE IF NOT EXISTS rating_mie CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
@@ -31,7 +31,7 @@ Dibangun menggunakan **PHP native (tanpa framework)**, **MySQL/MariaDB via PDO (
      ```
 
 4. **Sesuaikan Konfigurasi Database (Jika Perlu)**
-   - Buka [`config/config.php`](file:///e:/Tugas%20Vscode/PemWeb/Rating%20Mie/config/config.php) jika kredensial MySQL lokal Anda berbeda dari bawaan (`DB_HOST = 127.0.0.1`, `DB_NAME = rating_mie`, `DB_USER = root`, `DB_PASS = ''`).
+   - Buka [`config/config.php`](config/config.php) jika kredensial MySQL lokal Anda berbeda dari bawaan (`DB_HOST = 127.0.0.1`, `DB_NAME = rating_mie`, `DB_USER = root`, `DB_PASS = ''`).
 
 5. **Buka di Peramban**
    - Akses `http://localhost/rating-mie/` (atau jalankan server bawaan PHP dari direktori proyek dengan `php -S 127.0.0.1:8080`).
@@ -44,11 +44,11 @@ Dibangun menggunakan **PHP native (tanpa framework)**, **MySQL/MariaDB via PDO (
 
 | Peran | Username | Email | Password Awal |
 | --- | --- | --- | --- |
-| **Admin** | `admin` | `admin@warkopmietier.local` | `AdminMie123!` |
-| **User** | `budi_mie` | `budi@warkopmietier.local` | `UserMie123!` |
-| **User** | `siti_ramen` | `siti@warkopmietier.local` | `UserMie123!` |
-| **User** | `andi_warkop` | `andi@warkopmietier.local` | `UserMie123!` |
-| **User** | `dewi_pedas` | `dewi@warkopmietier.local` | `UserMie123!` |
+| **Admin** | `admin` | `admin@rateyourmie.local` | `AdminMie123!` |
+| **User** | `budi_mie` | `budi@rateyourmie.local` | `UserMie123!` |
+| **User** | `siti_ramen` | `siti@rateyourmie.local` | `UserMie123!` |
+| **User** | `andi_kuah` | `andi@rateyourmie.local` | `UserMie123!` |
+| **User** | `dewi_pedas` | `dewi@rateyourmie.local` | `UserMie123!` |
 
 ---
 
@@ -66,6 +66,17 @@ includes/
   helpers.php         # e() anti-XSS, redirect(), flash(), json_response(), render_noodle_visual()
   noodle_repo.php     # Query katalog, filter, detail, AVG() 4 aspek, Tierlist Komunitas, Top 10
   tier.php            # score_to_tier() dan metadata baris S sampai F
+auth/
+  login.php           # Halaman login dengan proteksi brute-force
+  register.php        # Halaman pendaftaran pengguna baru
+  logout.php          # Endpoint logout (POST + CSRF)
+pages/
+  noodle.php          # Detail mie, grafik 4 aspek, daftar ulasan, form rating
+  tierlists.php       # Halaman Tierlist Saya (kelola hingga 10 tierlist)
+  tierlist.php        # Penyusun tierlist pribadi S-F (drag-and-drop & layar sentuh)
+  community.php       # Tierlist Komunitas otomatis (syarat minimal 3 penilai)
+  top10.php           # Peringkat Top 10 mie berdasarkan skor tertinggi
+  profile.php         # Profil pengguna, daftar tierlist pribadi, dan riwayat rating
 admin/
   index.php           # Dashboard ringkas (total mie, pengguna, rating, ulasan terbaru)
   noodles.php         # Tabel daftar mie + pencarian + pagination
@@ -88,24 +99,22 @@ uploads/
 database/
   schema.sql          # Skema tabel MySQL/MariaDB (InnoDB, utf8mb4)
   seed.sql            # 18 mie populer, 1 akun admin, 4 akun user, data rating & tierlist contoh
+  update_images.sql   # Pembaruan kolom foto kemasan untuk database yang sudah ter-import
+docs/
+  AGENT_PLAN.md       # Panduan tahap pengerjaan untuk agent
+  DESIGN.md           # Panduan desain visual & UI
+  PRD.md              # Product Requirements Document
+  PRODUCT.md          # Ringkasan produk
+  TESTING.md          # Dokumentasi & daftar uji keamanan dan fungsional
 index.php             # Katalog publik, pencarian nama, filter brand/rasa/negara, pagination
-noodle.php            # Detail mie, grafik 4 aspek, daftar ulasan, form rating
-tierlists.php         # Halaman Tierlist Saya (kelola hingga 10 tierlist)
-tierlist.php          # Penyusun tierlist pribadi S-F (drag-and-drop & layar sentuh)
-community.php         # Tierlist Komunitas otomatis (syarat minimal 3 penilai)
-top10.php             # Peringkat Top 10 mie berdasarkan skor tertinggi
-profile.php           # Profil pengguna, daftar tierlist pribadi, dan riwayat rating
-login.php             # Halaman login dengan proteksi brute-force
-register.php          # Halaman pendaftaran pengguna baru
-logout.php            # Endpoint logout (POST + CSRF)
-TESTING.md            # Dokumentasi & daftar uji keamanan dan fungsional (Tahap 7)
+README.md             # Dokumentasi instalasi & struktur proyek
 ```
 
 ---
 
 ## 4. Cara Menjalankan Pengujian
 
-Lihat rincian skenario dan hasil pengujian pada file [`TESTING.md`](file:///e:/Tugas%20Vscode/PemWeb/Rating%20Mie/TESTING.md).
+Lihat rincian skenario dan hasil pengujian pada file [`docs/TESTING.md`](docs/TESTING.md).
 Untuk memeriksa sintaks seluruh file PHP melalui terminal:
 ```powershell
 Get-ChildItem -Recurse -Filter *.php | ForEach-Object { php -l $_.FullName }

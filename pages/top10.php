@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/noodle_repo.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/noodle_repo.php';
 
 $top10 = get_top10_noodles();
 $minRaters = (int) (get_app_settings()['min_raters'] ?? MIN_RATERS);
 
 $pageTitle = 'Peringkat Top 10 Mie Instan';
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <main id="main-content" class="container section-block">
@@ -18,7 +18,7 @@ include __DIR__ . '/includes/header.php';
             <p>10 varian dengan skor rata-rata tertinggi (syarat minimal <strong><?= $minRaters ?> penilai</strong>; seri diputuskan oleh penilai terbanyak).</p>
         </div>
         <div class="page-head-actions">
-            <a href="<?= e(base_url('community.php')) ?>" class="btn btn-secondary btn-sm">
+            <a href="<?= e(base_url('pages/community.php')) ?>" class="btn btn-secondary btn-sm">
                 <?= svg_icon('layers', 15) ?> Tierlist Komunitas
             </a>
         </div>
@@ -62,7 +62,7 @@ include __DIR__ . '/includes/header.php';
                                 <div class="table-product-cell">
                                     <?= render_noodle_swatch($noodle, 'swatch-sm') ?>
                                     <div>
-                                        <a href="<?= e(base_url('noodle.php?id=' . (int) $noodle['id'])) ?>" class="table-item-title">
+                                        <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $noodle['id'])) ?>" class="table-item-title">
                                             <?= e($noodle['name']) ?>
                                         </a>
                                         <div class="table-item-sub">
@@ -101,4 +101,4 @@ include __DIR__ . '/includes/header.php';
     <?php endif; ?>
 </main>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

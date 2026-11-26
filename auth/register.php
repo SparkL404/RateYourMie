@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 if (current_user() !== null) {
     redirect('index.php');
@@ -64,14 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
 
             flash('success', 'Pendaftaran berhasil! Silakan login dengan akun baru Anda.');
-            redirect('login.php');
+            redirect('auth/login.php');
         }
     }
 }
 
 $pageTitle = 'Daftar Akun Baru';
 $hideFooter = true;
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <main id="main-content" class="container section-block auth-page-main">
@@ -90,7 +90,7 @@ include __DIR__ . '/includes/header.php';
             </div>
         <?php endif; ?>
 
-        <form action="<?= e(base_url('register.php')) ?>" method="post" class="form-stack" novalidate>
+        <form action="<?= e(base_url('auth/register.php')) ?>" method="post" class="form-stack" novalidate>
             <?= csrf_field() ?>
 
             <div class="form-group">
@@ -160,9 +160,9 @@ include __DIR__ . '/includes/header.php';
         </form>
 
         <p class="auth-switch">
-            Sudah punya akun? <a href="<?= e(base_url('login.php')) ?>">Login di sini</a>
+            Sudah punya akun? <a href="<?= e(base_url('auth/login.php')) ?>">Login di sini</a>
         </p>
     </section>
 </main>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

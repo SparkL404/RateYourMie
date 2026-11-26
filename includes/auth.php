@@ -24,7 +24,7 @@ function init_session(): void
         'samesite' => 'Lax',
     ]);
 
-    session_name('WARKOPMIETIERSESSID');
+    session_name('RATEYOURMIESESSID');
     session_start();
 }
 
@@ -69,7 +69,7 @@ function is_admin(): bool
 }
 
 /**
- * Mewajibkan pengguna login; jika belum, simpan URL tujuan dan arahkan ke login.php (FU-03).
+ * Mewajibkan pengguna login; jika belum, simpan URL tujuan dan arahkan ke auth/login.php (FU-03).
  */
 function require_login(bool $asJson = false): array
 {
@@ -87,11 +87,11 @@ function require_login(bool $asJson = false): array
         $_SESSION['redirect_after_login'] = $requestUri;
     }
     flash('warning', 'Silakan login terlebih dahulu untuk mengakses halaman tersebut.');
-    redirect('login.php');
+    redirect('auth/login.php');
 }
 
 /**
- * Mewajibkan role admin; jika belum login arahkan ke login.php, jika role user biasa tolak dengan 403 (FU-04).
+ * Mewajibkan role admin; jika belum login arahkan ke auth/login.php, jika role user biasa tolak dengan 403 (FU-04).
  */
 function require_admin(bool $asJson = false): array
 {

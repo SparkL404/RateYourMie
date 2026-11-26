@@ -201,7 +201,7 @@ include __DIR__ . '/../includes/header.php';
                 <span class="kpi-label">Tierlist Tersimpan</span>
                 <div class="kpi-row">
                     <strong class="kpi-value tabular"><?= $totalTierlists ?></strong>
-                    <a href="<?= e(base_url('community.php')) ?>" class="kpi-link">
+                    <a href="<?= e(base_url('pages/community.php')) ?>" class="kpi-link">
                         <span>Tierlist</span>
                         <?= svg_icon('arrow-right', 13) ?>
                     </a>
@@ -274,7 +274,7 @@ include __DIR__ . '/../includes/header.php';
                                 <div class="admin-row-main">
                                     <?= render_noodle_swatch($n, 'swatch-sm') ?>
                                     <div class="admin-row-copy">
-                                        <a href="<?= e(base_url('noodle.php?id=' . (int) $n['id'])) ?>" class="table-item-title"><?= e($n['name']) ?></a>
+                                        <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $n['id'])) ?>" class="table-item-title"><?= e($n['name']) ?></a>
                                         <span class="table-item-sub tabular"><?= e($n['brand']) ?> · <?= e(format_rupiah((int) $n['price'])) ?></span>
                                     </div>
                                 </div>
@@ -314,7 +314,7 @@ include __DIR__ . '/../includes/header.php';
                                     <div class="admin-review-meta">
                                         <strong>@<?= e($rv['username']) ?></strong>
                                         <span class="muted-inline">di</span>
-                                        <a href="<?= e(base_url('noodle.php?id=' . (int) $rv['noodle_id'])) ?>" class="table-item-title"><?= e($rv['noodle_name']) ?></a>
+                                        <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $rv['noodle_id'])) ?>" class="table-item-title"><?= e($rv['noodle_name']) ?></a>
                                     </div>
                                     <span class="score-pill">
                                         <?= svg_icon('star', 13) ?>

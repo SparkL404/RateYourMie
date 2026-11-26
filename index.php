@@ -142,7 +142,7 @@ include __DIR__ . '/includes/header.php';
                     <a href="<?= e(base_url('index.php')) ?>" class="btn btn-ghost btn-sm">Reset</a>
                 <?php endif; ?>
 
-                <a href="<?= e(base_url(current_user() !== null ? 'tierlists.php' : 'login.php')) ?>" class="btn btn-obsidian">
+                <a href="<?= e(base_url(current_user() !== null ? 'pages/tierlists.php' : 'auth/login.php')) ?>" class="btn btn-obsidian">
                     <?= svg_icon('plus', 15) ?>
                     <span>Tierlist Baru</span>
                 </a>
@@ -201,7 +201,7 @@ include __DIR__ . '/includes/header.php';
                 <div class="fluid-kpi-num tabular"><?= $totalReviewsCount ?></div>
                 <div class="fluid-kpi-foot">
                     <span class="fluid-kpi-label">Total ulasan<br>komunitas</span>
-                    <a href="<?= e(base_url('community.php')) ?>" class="fluid-kpi-arrow" aria-label="Buka Tierlist Komunitas">
+                    <a href="<?= e(base_url('pages/community.php')) ?>" class="fluid-kpi-arrow" aria-label="Buka Tierlist Komunitas">
                         <?= svg_icon('arrow-right', 16) ?>
                     </a>
                 </div>
@@ -224,7 +224,7 @@ include __DIR__ . '/includes/header.php';
                             Belum ada<br>peringkat juara
                         <?php endif; ?>
                     </span>
-                    <a href="<?= e(base_url($championNoodle ? 'noodle.php?id=' . (int) $championNoodle['id'] : 'top10.php')) ?>" class="fluid-kpi-arrow" aria-label="Lihat Juara #1">
+                    <a href="<?= e(base_url($championNoodle ? 'pages/noodle.php?id=' . (int) $championNoodle['id'] : 'pages/top10.php')) ?>" class="fluid-kpi-arrow" aria-label="Lihat Juara #1">
                         <?= svg_icon('arrow-right', 16) ?>
                     </a>
                 </div>
@@ -293,7 +293,7 @@ include __DIR__ . '/includes/header.php';
                     >
                         <div class="noodle-card-body">
                             <div class="noodle-card-head">
-                                <a href="<?= e(base_url('noodle.php?id=' . (int) $noodle['id'])) ?>" class="noodle-swatch-link" aria-label="Buka detail <?= e($noodle['name']) ?>">
+                                <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $noodle['id'])) ?>" class="noodle-swatch-link" aria-label="Buka detail <?= e($noodle['name']) ?>">
                                     <?= render_noodle_swatch($noodle, 'swatch-catalog') ?>
                                 </a>
                                 <div class="noodle-head-copy">
@@ -301,7 +301,7 @@ include __DIR__ . '/includes/header.php';
                                         <span><?= e($noodle['brand']) ?> · <?= e($noodle['origin_country']) ?></span>
                                     </div>
                                     <h2 class="noodle-card-title">
-                                        <a href="<?= e(base_url('noodle.php?id=' . (int) $noodle['id'])) ?>">
+                                        <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $noodle['id'])) ?>">
                                             <?= e($noodle['name']) ?>
                                         </a>
                                     </h2>
@@ -369,7 +369,7 @@ include __DIR__ . '/includes/header.php';
                                     <?php else: ?>
                                         <span class="score-inline-meta">Baru</span>
                                     <?php endif; ?>
-                                    <a href="<?= e(base_url('noodle.php?id=' . (int) $noodle['id'])) ?>" class="card-action-link">
+                                    <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $noodle['id'])) ?>" class="card-action-link">
                                         <span>Nilai</span>
                                         <?= svg_icon('arrow-right', 13) ?>
                                     </a>
