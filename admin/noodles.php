@@ -99,7 +99,7 @@ include __DIR__ . '/../includes/header.php';
                                 <div class="table-product-cell">
                                     <?= render_noodle_swatch($n, 'swatch-sm') ?>
                                     <div>
-                                        <a href="<?= e(base_url('noodle.php?id=' . (int) $n['id'])) ?>" class="table-item-title"><?= e($n['name']) ?></a>
+                                        <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $n['id'])) ?>" class="table-item-title"><?= e($n['name']) ?></a>
                                         <div class="table-item-sub"><?= e($n['brand']) ?> · <?= e($n['flavor']) ?></div>
                                     </div>
                                 </div>

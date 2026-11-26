@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 $user = require_login();
 $pdo = db();
@@ -23,7 +23,7 @@ $totalCount = count($tierlists);
 $canCreateMore = $totalCount < MAX_TIERLISTS;
 
 $pageTitle = 'Tierlist Saya';
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <main id="main-content" class="container section-block">
@@ -98,7 +98,7 @@ include __DIR__ . '/includes/header.php';
                         </div>
 
                         <h2 class="tierlist-card-title">
-                            <a href="<?= e(base_url('tierlist.php?id=' . (int) $tl['id'])) ?>" class="js-tierlist-title-link">
+                            <a href="<?= e(base_url('pages/tierlist.php?id=' . (int) $tl['id'])) ?>" class="js-tierlist-title-link">
                                 <?= e($tl['title']) ?>
                             </a>
                         </h2>
@@ -122,7 +122,7 @@ include __DIR__ . '/includes/header.php';
                     </div>
 
                     <div class="tierlist-card-actions">
-                        <a href="<?= e(base_url('tierlist.php?id=' . (int) $tl['id'])) ?>" class="btn btn-primary btn-sm">
+                        <a href="<?= e(base_url('pages/tierlist.php?id=' . (int) $tl['id'])) ?>" class="btn btn-primary btn-sm">
                             <?= svg_icon('layers', 14) ?> Buka Papan
                         </a>
                         <button
@@ -148,4 +148,4 @@ include __DIR__ . '/includes/header.php';
 </main>
 
 <script src="<?= e(base_url('assets/js/tierlist.js')) ?>"></script>
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

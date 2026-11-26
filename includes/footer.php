@@ -10,12 +10,12 @@ declare(strict_types=1);
                     </div>
                     <div class="footer-links">
                         <a href="<?= e(base_url('index.php')) ?>">Katalog</a>
-                        <a href="<?= e(base_url('community.php')) ?>">Tierlist Komunitas</a>
-                        <a href="<?= e(base_url('top10.php')) ?>">Top 10</a>
+                        <a href="<?= e(base_url('pages/community.php')) ?>">Tierlist Komunitas</a>
+                        <a href="<?= e(base_url('pages/top10.php')) ?>">Top 10</a>
                         <?php if (current_user() !== null): ?>
-                            <a href="<?= e(base_url('tierlists.php')) ?>">Tierlist Saya</a>
+                            <a href="<?= e(base_url('pages/tierlists.php')) ?>">Tierlist Saya</a>
                         <?php else: ?>
-                            <a href="<?= e(base_url('login.php')) ?>">Masuk</a>
+                            <a href="<?= e(base_url('auth/login.php')) ?>">Masuk</a>
                         <?php endif; ?>
                     </div>
                 </div>

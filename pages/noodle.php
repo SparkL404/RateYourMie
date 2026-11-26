@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/noodle_repo.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/noodle_repo.php';
 
 $id = (int) ($_GET['id'] ?? 0);
 $noodle = $id > 0 ? get_noodle_by_id($id) : null;
@@ -10,13 +10,13 @@ $noodle = $id > 0 ? get_noodle_by_id($id) : null;
 if (!$noodle) {
     http_response_code(404);
     $pageTitle = 'Mie Tidak Ditemukan';
-    include __DIR__ . '/includes/header.php';
+    include __DIR__ . '/../includes/header.php';
     echo '<main id="main-content" class="container section-block"><div class="empty-state">'
         . '<h1>404 — Varian Mie Tidak Ditemukan</h1>'
         . '<p>Data mie instan yang Anda cari tidak tersedia atau telah dihapus.</p>'
         . '<a href="' . e(base_url('index.php')) . '" class="btn btn-primary">Kembali ke Katalog</a>'
         . '</div></main>';
-    include __DIR__ . '/includes/footer.php';
+    include __DIR__ . '/../includes/footer.php';
     exit;
 }
 
@@ -37,7 +37,7 @@ $aspectsMeta = [
 ];
 
 $pageTitle = $noodle['name'];
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <main id="main-content" class="container section-block">
@@ -172,8 +172,8 @@ include __DIR__ . '/includes/header.php';
                     Masuk ke akun Anda untuk memberikan penilaian 4 aspek dan menulis ulasan untuk <strong><?= e($noodle['name']) ?></strong>.
                 </p>
                 <div class="form-actions">
-                    <a href="<?= e(base_url('login.php')) ?>" class="btn btn-primary">Masuk untuk Menilai</a>
-                    <a href="<?= e(base_url('register.php')) ?>" class="btn btn-secondary">Daftar</a>
+                    <a href="<?= e(base_url('auth/login.php')) ?>" class="btn btn-primary">Masuk untuk Menilai</a>
+                    <a href="<?= e(base_url('auth/register.php')) ?>" class="btn btn-secondary">Daftar</a>
                 </div>
             <?php else: ?>
                 <p class="muted-copy">
@@ -266,4 +266,4 @@ include __DIR__ . '/includes/header.php';
 </main>
 
 <script src="<?= e(base_url('assets/js/rating.js')) ?>"></script>
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/tier.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/tier.php';
 
 $user = require_login();
 $pdo = db();
@@ -34,7 +34,7 @@ $stmtRatings->execute([':uid' => (int) $user['id']]);
 $myRatings = $stmtRatings->fetchAll();
 
 $pageTitle = 'Profil ' . $user['username'];
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <main id="main-content" class="container section-block">
@@ -58,12 +58,12 @@ include __DIR__ . '/includes/header.php';
     <section class="profile-section">
         <div class="section-head-row">
             <h2>Tierlist Pribadi</h2>
-            <a href="<?= e(base_url('tierlists.php')) ?>" class="btn btn-secondary btn-sm">Kelola Tierlist</a>
+            <a href="<?= e(base_url('pages/tierlists.php')) ?>" class="btn btn-secondary btn-sm">Kelola Tierlist</a>
         </div>
         <?php if (empty($myTierlists)): ?>
             <div class="empty-state">
                 <p>Anda belum membuat tierlist pribadi.</p>
-                <a href="<?= e(base_url('tierlists.php')) ?>" class="btn btn-primary">Buat Tierlist</a>
+                <a href="<?= e(base_url('pages/tierlists.php')) ?>" class="btn btn-primary">Buat Tierlist</a>
             </div>
         <?php else: ?>
             <div class="catalog-grid">
@@ -75,11 +75,11 @@ include __DIR__ . '/includes/header.php';
                                 <span class="tabular"><?= (int) $tl['item_count'] ?> mie</span>
                             </div>
                             <h3 class="tierlist-card-title">
-                                <a href="<?= e(base_url('tierlist.php?id=' . (int) $tl['id'])) ?>"><?= e($tl['title']) ?></a>
+                                <a href="<?= e(base_url('pages/tierlist.php?id=' . (int) $tl['id'])) ?>"><?= e($tl['title']) ?></a>
                             </h3>
                         </div>
                         <div class="tierlist-card-actions">
-                            <a href="<?= e(base_url('tierlist.php?id=' . (int) $tl['id'])) ?>" class="btn btn-secondary btn-sm">Buka Papan Tierlist</a>
+                            <a href="<?= e(base_url('pages/tierlist.php?id=' . (int) $tl['id'])) ?>" class="btn btn-secondary btn-sm">Buka Papan Tierlist</a>
                         </div>
                     </article>
                 <?php endforeach; ?>
@@ -111,7 +111,7 @@ include __DIR__ . '/includes/header.php';
                             <?php $tier = score_to_tier((float) $r['final_score']); ?>
                             <tr>
                                 <td class="cell-sans">
-                                    <a href="<?= e(base_url('noodle.php?id=' . (int) $r['noodle_id'])) ?>" class="table-item-title">
+                                    <a href="<?= e(base_url('pages/noodle.php?id=' . (int) $r['noodle_id'])) ?>" class="table-item-title">
                                         <?= e($r['noodle_name']) ?>
                                     </a>
                                     <div class="table-item-sub"><?= e($r['noodle_brand']) ?> · <?= e($r['noodle_flavor']) ?></div>
@@ -139,4 +139,4 @@ include __DIR__ . '/includes/header.php';
     </section>
 </main>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -1,5 +1,5 @@
 /**
- * tierlist.js — Manajemen Daftar Tierlist (tierlists.php) & Drag-and-Drop / Layar Sentuh (tierlist.php)
+ * tierlist.js — Manajemen Daftar Tierlist (pages/tierlists.php) & Drag-and-Drop / Layar Sentuh (pages/tierlist.php)
  */
 (function () {
     'use strict';
@@ -9,7 +9,7 @@
     var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
 
     /* ======================================================================
-       BAGIAN 1: Halaman Manajemen Koleksi Tierlist (tierlists.php)
+       BAGIAN 1: Halaman Manajemen Koleksi Tierlist (pages/tierlists.php)
        ====================================================================== */
     var createForm = document.getElementById('js-create-tierlist-form');
     var feedbackContainer = document.getElementById('tierlists-feedback');
@@ -56,7 +56,7 @@
                         if (btn) btn.disabled = false;
                         return;
                     }
-                    window.location.href = json.data.url || (baseUrl + '/tierlist.php?id=' + json.data.tierlist_id);
+                    window.location.href = json.data.url || (baseUrl + '/pages/tierlist.php?id=' + json.data.tierlist_id);
                 })
                 .catch(function () {
                     showListFeedback('error', 'Gangguan jaringan saat membuat tierlist.');
@@ -155,7 +155,7 @@
     });
 
     /* ======================================================================
-       BAGIAN 2: Penyusun Papan Tierlist Interaktif (tierlist.php)
+       BAGIAN 2: Penyusun Papan Tierlist Interaktif (pages/tierlist.php)
        ====================================================================== */
     var tierboard = document.getElementById('js-tierboard');
     if (!tierboard) {
